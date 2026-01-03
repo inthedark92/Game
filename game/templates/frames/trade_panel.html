@@ -1,0 +1,521 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/trade_panel.css' %}">    
+</head>
+<body class="trade-panel-body">
+    <div class="trade-panel-header">
+        <div class="trade-panel-title">
+            <h2>Торговля</h2>
+            <div class="trade-panel-player-name">с игроком: <span id="trade-panel-partner-name">Игрок123</span></div>
+        </div>
+        <button class="trade-panel-cancel-trade" id="trade-panel-cancel-trade">Отмена сделки</button>
+    </div>
+
+    <div class="trade-panel-container">
+        <!-- Боковая панель с ресурсами (только для вкладки ресурсов) -->
+        <div class="trade-panel-resources-sidebar" id="trade-panel-resources-sidebar">
+            <h3>Ваши ресурсы</h3>
+            <div class="trade-panel-resource-item">
+                <span class="trade-panel-resource-name">Серебро</span>
+                <span class="trade-panel-resource-amount">150</span>
+            </div>
+            <div class="trade-panel-resource-item">
+                <span class="trade-panel-resource-name">Серебряная пыль</span>
+                <span class="trade-panel-resource-amount">45</span>
+            </div>
+            <div class="trade-panel-resource-item">
+                <span class="trade-panel-resource-name">Золото</span>
+                <span class="trade-panel-resource-amount">80</span>
+            </div>
+            <div class="trade-panel-resource-item">
+                <span class="trade-panel-resource-name">Золотая пыль</span>
+                <span class="trade-panel-resource-amount">30</span>
+            </div>
+        </div>
+
+        <div class="trade-panel-main-content">
+            <div class="trade-panel-tabs">
+                <div class="trade-panel-tab active" data-tab="money">Передача монет</div>
+                <div class="trade-panel-tab" data-tab="resources">Продажа ресурсов</div>
+                <div class="trade-panel-tab" data-tab="items">Продажа предметов</div>
+            </div>
+
+            <!-- Вкладка передачи монет -->
+            <div class="trade-panel-tab-content active" id="trade-panel-money-tab">
+                <div class="trade-panel-input-row">
+                    <div class="trade-panel-input-group">
+                        <label class="trade-panel-label" for="trade-panel-amount">Сумма:</label>
+                        <input type="number" id="trade-panel-amount" min="0" value="0" class="trade-panel-input">
+                    </div>
+                    
+                    <div class="trade-panel-input-group">
+                        <label class="trade-panel-label" for="trade-panel-operation">Тип операции:</label>
+                        <select id="trade-panel-operation" class="trade-panel-select">
+                            <option value="shop">Услуги мага</option>
+                            <option value="resources">Оплата за расходные ресурсы</option>
+                            <option value="quest">Оплата за квест предметы</option>
+                            <option value="exchange">Доплата/Обмен</option>
+                            <option value="purchase">Покупка предметов</option>
+                            <option value="hire">Найм/Антинайм</option>
+                            <option value="refund">Ошибка/Возврат</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="trade-panel-calculation">
+                    <div>Передаётся: <span id="trade-panel-transfer-amount">0</span> монет</div>
+                    <div>Комиссия (3%): <span id="trade-panel-fee-amount">0</span> монет</div>
+                    <div>Итого: <span id="trade-panel-total-amount">0</span> монет</div>
+                </div>
+                
+                <div class="trade-panel-action-buttons">
+                    <button class="trade-panel-button" id="trade-panel-transfer-money">Передать</button>
+                </div>
+            </div>
+
+            <!-- Вкладка продажи ресурсов -->
+            <div class="trade-panel-tab-content" id="trade-panel-resources-tab">
+                <div class="trade-panel-radio-group">
+                    <label class="trade-panel-radio-option">
+                        <input type="radio" name="trade-panel-resource-action" value="transfer" checked> Передать
+                    </label>
+                    <label class="trade-panel-radio-option">
+                        <input type="radio" name="trade-panel-resource-action" value="sell"> Продать
+                    </label>
+                </div>
+                
+                <div id="trade-panel-transfer-section">
+                    <div class="trade-panel-input-row">
+                        <div class="trade-panel-input-group">
+                            <label class="trade-panel-label" for="trade-panel-resource-type">Ресурс:</label>
+                            <select id="trade-panel-resource-type" class="trade-panel-select">
+                                <option value="silver">Серебро</option>
+                                <option value="silver-dust">Серебряная пыль</option>
+                                <option value="gold">Золото</option>
+                                <option value="gold-dust">Золотая пыль</option>
+                            </select>
+                        </div>
+                        
+                        <div class="trade-panel-input-group">
+                            <label class="trade-panel-label" for="trade-panel-resource-amount">Количество:</label>
+                            <input type="number" id="trade-panel-resource-amount" min="0" value="0" class="trade-panel-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="trade-panel-sell-section" class="trade-panel-hidden">
+                    <div class="trade-panel-input-row">
+                        <div class="trade-panel-input-group">
+                            <label class="trade-panel-label" for="trade-panel-sell-resource-type">Ресурс:</label>
+                            <select id="trade-panel-sell-resource-type" class="trade-panel-select">
+                                <option value="silver">Серебро</option>
+                                <option value="silver-dust">Серебряная пыль</option>
+                                <option value="gold">Золото</option>
+                                <option value="gold-dust">Золотая пыль</option>
+                            </select>
+                        </div>
+                        
+                        <div class="trade-panel-input-group">
+                            <label class="trade-panel-label" for="trade-panel-sell-amount">Количество:</label>
+                            <input type="number" id="trade-panel-sell-amount" min="0" value="0" class="trade-panel-input">
+                        </div>
+                    </div>
+                    
+                    <div class="trade-panel-input-row">
+                        <div class="trade-panel-input-group">
+                            <label class="trade-panel-label" for="trade-panel-price-per-unit">Цена за 1 единицу:</label>
+                            <input type="number" id="trade-panel-price-per-unit" min="0" value="0" class="trade-panel-input">
+                        </div>
+                        
+                        <div class="trade-panel-input-group">
+                            <!-- Пустая группа для выравнивания -->
+                        </div>
+                    </div>
+                    
+                    <div class="trade-panel-calculation">
+                        <div>Сумма: <span id="trade-panel-sell-total">0</span> монет</div>
+                        <div>Комиссия (3%): <span id="trade-panel-sell-fee">0</span> монет</div>
+                        <div>Итого к получению: <span id="trade-panel-sell-net">0</span> монет</div>
+                    </div>
+                </div>
+                
+                <div class="trade-panel-action-buttons">
+                    <button class="trade-panel-button" id="trade-panel-process-resources">Подтвердить</button>
+                </div>
+            </div>
+
+            <!-- Вкладка продажи предметов -->
+            <div class="trade-panel-tab-content" id="trade-panel-items-tab">
+                <div class="trade-panel-items-tabs">
+                    <div class="trade-panel-item-tab active" data-category="all">Все вещи</div>
+                    <div class="trade-panel-item-tab" data-category="weapons">Оружие</div>
+                    <div class="trade-panel-item-tab" data-category="armor">Броня</div>
+                    <div class="trade-panel-item-tab" data-category="jewelry">Ювелирное</div>
+                    <div class="trade-panel-item-tab" data-category="scrolls">Свитки</div>
+                    <div class="trade-panel-item-tab" data-category="potions">Эликсиры</div>
+                    <div class="trade-panel-item-tab" data-category="spheres">Сферы</div>
+                    <div class="trade-panel-item-tab" data-category="misc">Разное</div>
+                    <div class="trade-panel-item-tab" data-category="quest">Квестовые</div>
+                </div>
+                
+                <div class="trade-panel-items-grid" id="trade-panel-items-grid">
+                    <!-- Здесь будут 18 слотов -->
+                    <div class="trade-panel-item-slot" data-item="1">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="2">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="3">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="4">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="5">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="6">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="7">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="8">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="9">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="10">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="11">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="12">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="13">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="14">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="15">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="16">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="17">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                    <div class="trade-panel-item-slot" data-item="18">
+                        <img src="https://via.placeholder.com/50" alt="Предмет">
+                    </div>
+                </div>
+
+                <div class="trade-panel-pagination">
+                    <button class="trade-panel-page-button" id="trade-panel-prev-page">&lt;</button>
+                    <span class="trade-panel-page-button active">1</span>
+                    <button class="trade-panel-page-button" id="trade-panel-next-page">&gt;</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Боковая панель с ценами (только для вкладки ресурсов) -->
+        <div class="trade-panel-market-price" id="trade-panel-market-price">
+            <h3>Текущий курс</h3>
+            <div class="trade-panel-price-item">
+                <span class="trade-panel-resource-name">Серебро</span>
+                <span class="trade-panel-price-value">10</span>
+            </div>
+            <div class="trade-panel-price-item">
+                <span class="trade-panel-resource-name">Серебряная пыль</span>
+                <span class="trade-panel-price-value">25</span>
+            </div>
+            <div class="trade-panel-price-item">
+                <span class="trade-panel-resource-name">Золото</span>
+                <span class="trade-panel-price-value">50</span>
+            </div>
+            <div class="trade-panel-price-item">
+                <span class="trade-panel-resource-name">Золотая пыль</span>
+                <span class="trade-panel-price-value">100</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для передачи предмета -->
+    <div class="trade-panel-item-modal" id="trade-panel-transfer-modal">
+        <h3>Передача предмета</h3>
+        <div class="trade-panel-item-modal-content">
+            Вы согласны передать <span id="trade-panel-transfer-item-name">Название предмета</span>?
+        </div>
+        <div class="trade-panel-item-modal-buttons">
+            <button class="trade-panel-button cancel" id="trade-panel-transfer-no">Нет</button>
+            <button class="trade-panel-button" id="trade-panel-transfer-yes">Да</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно для продажи предмета -->
+    <div class="trade-panel-item-modal" id="trade-panel-sell-modal">
+        <h3>Продажа предмета</h3>
+        <div class="trade-panel-item-modal-content">
+            <div id="trade-panel-sell-item-name">Название предмета</div>
+            <div class="trade-panel-input-group" style="margin-top: 15px;">
+                <label class="trade-panel-label" for="trade-panel-item-price">Цена:</label>
+                <input type="number" id="trade-panel-item-price" min="0" value="0" class="trade-panel-input">
+            </div>
+            <div class="trade-panel-calculation" style="margin-top: 15px;">
+                <div>Комиссия (3%): <span id="trade-panel-item-fee">0</span> монет</div>
+                <div>Итого к получению: <span id="trade-panel-item-net">0</span> монет</div>
+            </div>
+        </div>
+        <div class="trade-panel-item-modal-buttons">
+            <button class="trade-panel-button cancel" id="trade-panel-sell-cancel">Отмена</button>
+            <button class="trade-panel-button" id="trade-panel-sell-confirm">Продать</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора действия -->
+    <div class="trade-panel-item-modal" id="trade-panel-action-modal">
+        <h3>Выберите действие</h3>
+        <div class="trade-panel-item-modal-content">
+            Что вы хотите сделать с <span id="trade-panel-action-item-name">Название предмета</span>?
+        </div>
+        <div class="trade-panel-item-modal-buttons">
+            <button class="trade-panel-button" id="trade-panel-action-transfer">Передать</button>
+            <button class="trade-panel-button" id="trade-panel-action-sell">Продать</button>
+        </div>
+    </div>
+
+    <script>
+        // Переключение вкладок
+        document.querySelectorAll('.trade-panel-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Убираем активный класс у всех вкладок и контента
+                document.querySelectorAll('.trade-panel-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.trade-panel-tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Добавляем активный класс текущей вкладке и соответствующему контенту
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(`trade-panel-${tabId}-tab`).classList.add('active');
+                
+                // Показываем/скрываем боковые панели для вкладки ресурсов
+                if (tabId === 'resources') {
+                    document.getElementById('trade-panel-resources-sidebar').style.display = 'block';
+                    document.getElementById('trade-panel-market-price').style.display = 'block';
+                } else {
+                    document.getElementById('trade-panel-resources-sidebar').style.display = 'none';
+                    document.getElementById('trade-panel-market-price').style.display = 'none';
+                }
+            });
+        });
+
+        // Переключение подвкладок предметов
+        document.querySelectorAll('.trade-panel-item-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.trade-panel-item-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const category = this.getAttribute('data-category');
+                // Здесь будет логика фильтрации предметов по категориям
+                console.log('Выбрана категория:', category);
+            });
+        });
+
+        // Обработчики для вкладки монет
+        const amountInput = document.getElementById('trade-panel-amount');
+        const transferAmount = document.getElementById('trade-panel-transfer-amount');
+        const feeAmount = document.getElementById('trade-panel-fee-amount');
+        const totalAmount = document.getElementById('trade-panel-total-amount');
+        
+        amountInput.addEventListener('input', updateMoneyCalculations);
+        
+        function updateMoneyCalculations() {
+            const amount = parseFloat(amountInput.value) || 0;
+            const fee = amount * 0.03;
+            const total = amount + fee;
+            
+            transferAmount.textContent = amount.toFixed(2);
+            feeAmount.textContent = fee.toFixed(2);
+            totalAmount.textContent = total.toFixed(2);
+        }
+        
+        document.getElementById('trade-panel-transfer-money').addEventListener('click', function() {
+            const amount = parseFloat(amountInput.value) || 0;
+            const operation = document.getElementById('trade-panel-operation').value;
+            
+            if (amount <= 0) {
+                alert('Введите сумму больше нуля');
+                return;
+            }
+            
+            alert(`Передача ${amount} монет (тип операции: ${document.getElementById('trade-panel-operation').options[document.getElementById('trade-panel-operation').selectedIndex].text})`);
+        });
+        
+        // Обработчики для вкладки ресурсов
+        const resourceActionRadios = document.querySelectorAll('input[name="trade-panel-resource-action"]');
+        const transferSection = document.getElementById('trade-panel-transfer-section');
+        const sellSection = document.getElementById('trade-panel-sell-section');
+        const sellAmountInput = document.getElementById('trade-panel-sell-amount');
+        const pricePerUnitInput = document.getElementById('trade-panel-price-per-unit');
+        const sellTotal = document.getElementById('trade-panel-sell-total');
+        const sellFee = document.getElementById('trade-panel-sell-fee');
+        const sellNet = document.getElementById('trade-panel-sell-net');
+        
+        resourceActionRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'transfer') {
+                    transferSection.classList.remove('trade-panel-hidden');
+                    sellSection.classList.add('trade-panel-hidden');
+                } else {
+                    transferSection.classList.add('trade-panel-hidden');
+                    sellSection.classList.remove('trade-panel-hidden');
+                    updateSellCalculations();
+                }
+            });
+        });
+        
+        sellAmountInput.addEventListener('input', updateSellCalculations);
+        pricePerUnitInput.addEventListener('input', updateSellCalculations);
+        
+        function updateSellCalculations() {
+            const amount = parseFloat(sellAmountInput.value) || 0;
+            const price = parseFloat(pricePerUnitInput.value) || 0;
+            const total = amount * price;
+            const fee = total * 0.03;
+            const net = total - fee;
+            
+            sellTotal.textContent = total.toFixed(2);
+            sellFee.textContent = fee.toFixed(2);
+            sellNet.textContent = net.toFixed(2);
+        }
+        
+        document.getElementById('trade-panel-process-resources').addEventListener('click', function() {
+            const action = document.querySelector('input[name="trade-panel-resource-action"]:checked').value;
+            
+            if (action === 'transfer') {
+                const resourceType = document.getElementById('trade-panel-resource-type').value;
+                const amount = parseFloat(document.getElementById('trade-panel-resource-amount').value) || 0;
+                
+                if (amount <= 0) {
+                    alert('Введите количество больше нуля');
+                    return;
+                }
+                
+                alert(`Передача ${amount} единиц ресурса ${resourceType}`);
+            } else {
+                const resourceType = document.getElementById('trade-panel-sell-resource-type').value;
+                const amount = parseFloat(sellAmountInput.value) || 0;
+                const price = parseFloat(pricePerUnitInput.value) || 0;
+                
+                if (amount <= 0) {
+                    alert('Введите количество больше нуля');
+                    return;
+                }
+                
+                if (price <= 0) {
+                    alert('Введите цену больше нуля');
+                    return;
+                }
+                
+                alert(`Продажа ${amount} единиц ресурса ${resourceType} по ${price} монет за единицу`);
+            }
+        });
+        
+        // Обработчики для вкладки предметов
+        const transferModal = document.getElementById('trade-panel-transfer-modal');
+        const sellModal = document.getElementById('trade-panel-sell-modal');
+        const actionModal = document.getElementById('trade-panel-action-modal');
+        const itemPriceInput = document.getElementById('trade-panel-item-price');
+        const itemFee = document.getElementById('trade-panel-item-fee');
+        const itemNet = document.getElementById('trade-panel-item-net');
+        let currentItemId = null;
+        
+        document.querySelectorAll('.trade-panel-item-slot').forEach(slot => {
+            slot.addEventListener('click', function() {
+                currentItemId = this.getAttribute('data-item');
+                const itemName = `Предмет ${currentItemId}`;
+                
+                // Заполняем названия предметов во всех модальных окнах
+                document.getElementById('trade-panel-transfer-item-name').textContent = itemName;
+                document.getElementById('trade-panel-sell-item-name').textContent = itemName;
+                document.getElementById('trade-panel-action-item-name').textContent = itemName;
+                
+                // Сбрасываем цену при открытии
+                itemPriceInput.value = '0';
+                updateItemSellCalculations();
+                
+                // Показываем модальное окно выбора действия
+                actionModal.style.display = 'block';
+            });
+        });
+        
+        // Обработчики кнопок выбора действия
+        document.getElementById('trade-panel-action-transfer').addEventListener('click', function() {
+            actionModal.style.display = 'none';
+            transferModal.style.display = 'block';
+        });
+        
+        document.getElementById('trade-panel-action-sell').addEventListener('click', function() {
+            actionModal.style.display = 'none';
+            sellModal.style.display = 'block';
+        });
+        
+        itemPriceInput.addEventListener('input', updateItemSellCalculations);
+        
+        function updateItemSellCalculations() {
+            const price = parseFloat(itemPriceInput.value) || 0;
+            const fee = price * 0.03;
+            const net = price - fee;
+            
+            itemFee.textContent = fee.toFixed(2);
+            itemNet.textContent = net.toFixed(2);
+        }
+        
+        // Обработчики кнопок модальных окон
+        document.getElementById('trade-panel-transfer-no').addEventListener('click', function() {
+            transferModal.style.display = 'none';
+        });
+        
+        document.getElementById('trade-panel-transfer-yes').addEventListener('click', function() {
+            alert(`Предмет ${currentItemId} передан`);
+            transferModal.style.display = 'none';
+        });
+        
+        document.getElementById('trade-panel-sell-cancel').addEventListener('click', function() {
+            sellModal.style.display = 'none';
+        });
+        
+        document.getElementById('trade-panel-sell-confirm').addEventListener('click', function() {
+            const price = parseFloat(itemPriceInput.value) || 0;
+            
+            if (price <= 0) {
+                alert('Введите цену больше нуля');
+                return;
+            }
+            
+            alert(`Предмет ${currentItemId} продан за ${price} монет`);
+            sellModal.style.display = 'none';
+        });
+        
+        // Кнопка отмены сделки
+        document.getElementById('trade-panel-cancel-trade').addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите отменить сделку?')) {
+                alert('Сделка отменена');
+                // Здесь можно добавить логику закрытия панели торговли
+            }
+        });
+        
+        // Инициализация расчетов
+        updateMoneyCalculations();  
+        updateItemSellCalculations();
+        
+        // Скрываем боковые панели при загрузке
+        document.getElementById('resources-sidebar').style.display = 'none';
+        document.getElementById('market-price').style.display = 'none';
+    </script>
+</body>
+</html>

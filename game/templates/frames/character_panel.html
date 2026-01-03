@@ -1,0 +1,319 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/character_panel.css' %}">    
+<script src="{% static 'js/character_panel.js' %}"></script>
+</head>
+<body>
+    <div class="cp-main-container">
+        <div class="cp-left-column">
+            <div class="cp-top-row">
+                <div class="cp-characteristics-container">
+                    <h3>Характеристики</h3>
+                    <div class="cp-stat-row">
+                        <span>Имя:</span>
+                        <span>{{ profile.name }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Здоровье:</span>
+                        <span>{{ resources.current_hp }}/{{ resources.max_hp }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Мана:</span>
+                        <span>{{ resources.current_mp }}/{{ resources.max_mp }}</span>
+                    </div>
+                    <h4>Основные параметры</h4>
+                    <div class="cp-stat-row">
+                        <span>Сила:</span>
+                        <span>{{ stats.strength_base }} ({{ stats.strength_mod }}) 
+                            {% if free_stats > 0 %}<button class="cp-add-stat-btn" data-stat="strength">+</button>{% endif %}
+                        </span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Ловкость:</span>
+                        <span>{{ stats.agility_base }} ({{ stats.agility_mod }})
+                            {% if free_stats > 0 %}<button class="cp-add-stat-btn" data-stat="agility">+</button>{% endif %}
+                        </span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Интуиция:</span>
+                        <span>{{ stats.intuition_base }} ({{ stats.intuition_mod }})
+                            {% if free_stats > 0 %}<button class="cp-add-stat-btn" data-stat="intuition">+</button>{% endif %}
+                        </span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Выносливость:</span>
+                        <span>{{ stats.endurance_base }} ({{ stats.endurance_mod }})
+                            {% if free_stats > 0 %}<button class="cp-add-stat-btn" data-stat="endurance">+</button>{% endif %}
+                        </span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Интеллект:</span>
+                        <span>{{ stats.intelligence_base }} ({{ stats.intelligence_mod }})
+                            {% if free_stats > 0 %}<button class="cp-add-stat-btn" data-stat="intelligence">+</button>{% endif %}
+                        </span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Мудрость:</span>
+                        <span>{{ stats.wisdom_base }} ({{ stats.wisdom_mod }})
+                            {% if free_stats > 0 %}<button class="cp-add-stat-btn" data-stat="wisdom">+</button>{% endif %}
+                        </span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Сила Духа:</span>
+                        <span>{{ stats.spirit_base }} ({{ stats.spirit_mod }})
+                            {% if free_stats > 0 %}<button class="cp-add-stat-btn" data-stat="spirit">+</button>{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="cp-currency-container">
+                    <h3>Финансы и ресурсы</h3>
+                    <div class="cp-stat-row">
+                        <span>Монеты:</span>
+                        <span>{{ wallet.coins }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Серебро:</span>
+                        <span>{{ wallet.silver }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Серебрянная Пыль:</span>
+                        <span>{{ wallet.silver_dust }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Золото:</span>
+                        <span>{{ wallet.gold }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Золотая Пыль:</span>
+                        <span>{{ wallet.gold_dust }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Марки:</span>
+                        <span>{{ wallet.marks }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Варяжские Камни:</span>
+                        <span>{{ wallet.varangian_stones }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Волшебные Монеты:</span>
+                        <span>{{ wallet.magic_coins }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Жетоны Валькнут:</span>
+                        <span>{{ wallet.valknut_tokens }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Монеты Наставника:</span>
+                        <span>{{ wallet.ref_coins }}</span>
+                    </div>
+                </div>
+                
+                <div class="cp-stats-container">
+                    <h3>Статистика</h3>
+                    <div class="cp-stat-row">
+                        <span>Уровень:</span>
+                        <span>{{ profile.level }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Поединки с монстрами:</span>
+                        <span>{{ stats.monster_wins }}/{{ stats.monster_draws }}/{{ stats.monster_losses }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Поединки с игроками:</span>
+                        <span>{{ stats.pvp_wins }}/{{ stats.pvp_draws }}/{{ stats.pvp_losses }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Опыт:</span>
+                        <span>{{ profile.experience }} / {{ profile.experience_to_next_level }}</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Повышения:</span>
+                        <span>{{ profile.experience_percent|floatformat:2 }}%</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Астральная энергия:</span>
+                        <span>-</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Трудоспособность:</span>
+                        <span>-</span>
+                    </div>
+                    <div class="cp-stat-row">
+                        <span>Классификация:</span>
+                        <span class="cp-classification-{{ profile.classification }}">
+                            {% if profile.classification == 'warrior' %}Воин{% else %}Маг{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cp-modification-container">
+                <h3>Модификации</h3>
+                <div class="cp-mod-sections-container">
+                    <div class="cp-mod-section">
+                        <h4>Физические</h4>
+                        <div class="cp-stat-row">
+                            <span>Урон:</span>
+                            <span>{{ combat.phys_damage_min }}-{{ combat.phys_damage_max }}</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Шанс Крита:</span>
+                            <span>{{ combat.crit_chance|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Шанс Антикрита:</span>
+                            <span>{{ combat.anti_crit_chance|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Шанс Уворота:</span>
+                            <span>{{ combat.dodge_chance|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Шанс Антиуворота:</span>
+                            <span>{{ combat.anti_dodge_chance|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Шанс Удара сквозь броню:</span>
+                            <span>{{ combat.armor_penetration|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Шанс Контрудара:</span>
+                            <span>{{ combat.counterattack|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Шанс Парирования:</span>
+                            <span>{{ combat.parry|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Шанс Блока щитом:</span>
+                            <span>{{ combat.shield_block|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Шанс Предвидения:</span>
+                            <span>{{ combat.foresight_chance|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Мощность урона:</span>
+                            <span>{{ combat.damage_power_percent|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Мощность крит урона:</span>
+                            <span>{{ combat.crit_power|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита головы:</span>
+                            <span>{{ combat.armor_head }}</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита корпуса:</span>
+                            <span>{{ combat.armor_body }}</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита пояса:</span>
+                            <span>{{ combat.armor_waist }}</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита ног:</span>
+                            <span>{{ combat.armor_legs }}</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита от урона:</span>
+                            <span>{{ combat.damage_resistance }}</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Поглощение урона:</span>
+                            <span>{{ combat.phys_absorption_percent|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Поглощение крит урона:</span>
+                            <span>{{ combat.crit_absorption_percent|floatformat:2 }}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="cp-mod-section">
+                        <h4>Магические</h4>
+                        <div class="cp-stat-row">
+                            <span>Мощность магии:</span>
+                            <span>{{ magic.magic_power|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита от магии:</span>
+                            <span>{{ magic.magic_resistance|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Подавление защиты от магии:</span>
+                            <span>{{ magic.magic_resist_penetration|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Мощность магии Огня:</span>
+                            <span>{{ magic.magic_power_fire|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Мощность магии Воздуха:</span>
+                            <span>{{ magic.magic_power_air|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Мощность магии Воды:</span>
+                            <span>{{ magic.magic_power_water|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Мощность магии Земли:</span>
+                            <span>{{ magic.magic_power_earth|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Мощность магии Света:</span>
+                            <span>{{ magic.magic_power_light|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Мощность магии Тьмы:</span>
+                            <span>{{ magic.magic_power_dark|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита от магии Огня:</span>
+                            <span>{{ magic.resist_fire|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита от магии Воздуха:</span>
+                            <span>{{ magic.resist_air|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита от магии Воды:</span>
+                            <span>{{ magic.resist_water|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита от магии Земли:</span>
+                            <span>{{ magic.resist_earth|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита от магии Света:</span>
+                            <span>{{ magic.resist_light|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Защита от магии Тьмы:</span>
+                            <span>{{ magic.resist_dark|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Поглощение магического урона:</span>
+                            <span>{{ magic.magic_absorption_percent|floatformat:2 }}%</span>
+                        </div>
+
+                        <h4>Регенерация</h4>
+                        <div class="cp-stat-row">
+                            <span>Регенерация HP:</span>
+                            <span>{{ resources.hp_regen_percent|floatformat:2 }}%</span>
+                        </div>
+                        <div class="cp-stat-row">
+                            <span>Регенерация MP:</span>
+                            <span>{{ resources.mp_regen_percent|floatformat:2 }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% include 'frames/equipment_panel.html' %}
+    </div>
+</body>
+</html>

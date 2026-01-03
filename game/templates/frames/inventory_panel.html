@@ -1,0 +1,481 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Инвентарь</title>
+    <link rel="stylesheet" href="{% static 'css/inventory_panel.css' %}">
+</head>
+<body class="inv-body">
+    <div class="inv-main-container">
+        <div class="inv-inventory-section">
+            <div class="inv-header">
+                <h2>Инвентарь</h2>
+                <div class="inv-slots-info">
+                    <span id="slots-used">0</span>/<span id="slots-total">500</span> слотов
+                    <div class="inv-level-info">Уровень: <span id="player-level">1</span> (+<span id="bonus-slots">0</span> слотов)</div>
+                </div>
+            </div>
+            
+            <!-- Основные вкладки -->
+            <div class="inv-filter-tabs">
+                <div class="inv-filter-tab inv-active" data-filter="all">Все</div>
+                <div class="inv-filter-tab" data-filter="weapon">Оружие</div>
+                <div class="inv-filter-tab" data-filter="armor">Броня</div>
+                <div class="inv-filter-tab" data-filter="jewelry">Ювелирное</div>
+                <div class="inv-filter-tab" data-filter="potions">Эликсиры</div>
+                <div class="inv-filter-tab" data-filter="scrolls">Свитки</div>
+                <div class="inv-filter-tab" data-filter="misc">Разное</div>
+            </div>
+            
+            <!-- Контейнер для подвкладок -->
+            <div id="inv-sub-tabs-container"></div>
+            
+            <!-- Сетка инвентаря -->
+            <div class="inv-inventory-grid" id="inv-inventory-grid">
+                <div class="loading-message">Загрузка инвентаря...</div>
+            </div>
+            
+            <!-- Пагинация -->
+            <div class="inv-pagination" id="inv-pagination"></div>
+        </div>
+        
+        {% include 'frames/equipment_panel.html' %}
+    </div>
+
+    <!-- Панель информации о предмете -->
+    <div id="inv-item-info-panel" class="inv-item-info-panel" style="display: none;">
+        <div class="inv-item-info-content">
+            <div class="inv-item-info-header">
+                <h3 id="inv-item-info-name"></h3>
+                <span id="inv-item-info-durability-quantity" class="inv-item-durability-quantity"></span>
+            </div>
+            
+            <div class="inv-item-info-requirements" id="inv-item-info-requirements">
+                <!-- Требования к предмету -->
+            </div>
+            
+            <div class="inv-item-info-main">
+                <div class="inv-item-info-left">
+                    <img id="inv-item-info-image" src="" alt="Item Image" 
+                         onmouseover="showItemTooltip(event)" 
+                         onmouseout="hideItemTooltip()">
+                </div>
+                <div class="inv-item-info-right">
+                    <div class="inv-item-info-stats" id="inv-item-info-stats">
+                        <!-- Характеристики будут заполняться динамически -->
+                    </div>
+                    <div class="inv-item-info-description" id="inv-item-info-description"></div>
+                </div>
+            </div>
+            
+            <button class="inv-item-info-close" onclick="closeItemInfo()">×</button>
+        </div>
+    </div>
+
+    <!-- Расширенная подсказка при наведении на картинку -->
+    <div id="inv-item-tooltip" class="inv-item-tooltip" style="display: none;"></div>
+
+    <script>
+        const INVENTORY_CONFIG = {
+            slotsPerRow: 6, // Уменьшено для больших ячеек
+            slotsPerPage: 48 // 6 рядов по 4 ячейки
+        };
+        
+        let invCurrentFilter = 'all';
+        let invCurrentSubFilter = null;
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentItemData = null; // Добавляем для хранения данных текущего предмета
+
+        // Карта подвкладок для каждой категории
+        const invSubTabsMap = {
+            weapon: [
+                { name: 'Все оружие', value: null },
+                { name: 'Мечи', value: 'sword' },
+                { name: 'Топоры', value: 'axe' },
+                { name: 'Посохи', value: 'staff' }
+            ],
+            armor: [
+                { name: 'Вся броня', value: null },
+                { name: 'Шлемы', value: 'helmet' },
+                { name: 'Нагрудники', value: 'chest' },
+                { name: 'Поножи', value: 'leggings' }
+            ],
+            jewelry: [
+                { name: 'Все украшения', value: null },
+                { name: 'Кольца', value: 'ring' },
+                { name: 'Амулеты', value: 'amulet' }
+            ],
+            potions: [
+                { name: 'Все Эликсиры', value: null },
+                { name: 'Не боевые', value: 'nonbattle' },
+                { name: 'Боевые', value: 'battle' }
+            ]
+        };
+
+        // Загрузка данных инвентаря
+        function loadInventoryData(page = 1, filter = 'all', subfilter = null) {
+            currentPage = page;
+            invCurrentFilter = filter;
+            invCurrentSubFilter = subfilter;
+            
+            fetch(`/api/inventory/?page=${page}&filter=${filter}${subfilter ? `&subfilter=${subfilter}` : ''}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderInventoryGrid(data.items);
+                    renderPagination(data.total_pages);
+                    updateSlotsInfo(data);
+                    updateActiveTabs();
+                })
+                .catch(error => {
+                    console.error('Error loading inventory:', error);
+                    document.getElementById('inv-inventory-grid').innerHTML = 
+                        '<div class="error-message">Ошибка загрузки инвентаря</div>';
+                });
+        }
+
+        // Отрисовка сетки инвентаря (горизонтальный порядок)
+        function renderInventoryGrid(items) {
+            const grid = document.getElementById('inv-inventory-grid');
+            console.log("DEBUG: Rendering items:", items);
+            
+            if (!items || items.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-inventory">
+                        Инвентарь пуст<br>
+                        <small>Items count: 0</small>
+                    </div>`;
+                return;
+            }
+            
+            let html = '';
+            const startSlot = (currentPage - 1) * INVENTORY_CONFIG.slotsPerPage;
+            
+            // Создаем сетку 6x4 (24 слота на страницу) в горизонтальном порядке
+            for (let row = 0; row < 8; row++) {
+                html += '<div class="inv-inventory-row">';
+                for (let col = 0; col < INVENTORY_CONFIG.slotsPerRow; col++) {
+                    const slotIndex = row * INVENTORY_CONFIG.slotsPerRow + col;
+                    const globalSlotIndex = startSlot + slotIndex;
+                    
+                    // Ищем предмет по inventory_position
+                    const slotItem = items.find(item => item.inventory_position === globalSlotIndex);
+                    
+                    // Показываем только занятые слоты
+                    if (slotItem) {
+                        const item = slotItem.item_instance;
+                        const durabilityText = item.durability ? `${item.durability.current}/${item.durability.max}` : '';
+                        const quantityText = item.item.is_stackable && item.quantity > 1 ? item.quantity : '';
+                        
+                        html += `
+                            <div class="inv-inventory-slot" data-slot="${globalSlotIndex}">
+                                <div class="inv-item ${item.is_equipped ? 'inv-item-equipped' : ''}" 
+                                     data-item-id="${item.id}"
+                                     data-item-type="${item.item.type}"
+                                     onclick="handleItemClick(${item.id}, ${item.is_equipped}, ${item.can_equip}, event)">
+                                    <div class="inv-item-name">${item.item.name}</div>
+                                    <div class="inv-item-image">
+                                        <img src="${item.item.image}" 
+                                             alt="${item.item.name}"
+                                             onerror="this.src='/static/img/default_item.png'">
+                                    </div>
+                                    <div class="inv-item-bottom-info">
+                                        ${durabilityText ? `<div class="inv-item-durability">${durabilityText}</div>` : ''}
+                                        ${quantityText ? `<div class="inv-item-quantity">${quantityText}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="inv-slot-number">${globalSlotIndex + 1}</div>
+                            </div>
+                        `;
+                    }
+                }
+                html += '</div>';
+            }
+            
+            grid.innerHTML = html;
+        }
+
+        // Обработчик клика по предмету
+        function handleItemClick(itemId, isEquipped, canEquip, event) {
+            event.stopPropagation();
+            
+            if (canEquip) {
+                if (isEquipped) {
+                    // Снять предмет
+                    unequipItem(itemId);
+                } else {
+                    // Надеть предмет
+                    equipItem(itemId);
+                }
+            } else {
+                // Для неподходящих предметов показать информацию
+                showItemInfo(itemId);
+            }
+        }
+
+        // Надеть предмет
+        function equipItem(itemId) {
+            fetch('/api/inventory/equip/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ item_id: itemId })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    loadInventoryData(currentPage, invCurrentFilter, invCurrentSubFilter);
+                } else {
+                    alert(result.message);
+                }
+            });
+        }
+
+        // Снять предмет
+        function unequipItem(itemId) {
+            fetch('/api/inventory/unequip/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ item_id: itemId })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    loadInventoryData(currentPage, invCurrentFilter, invCurrentSubFilter);
+                } else {
+                    alert(result.message);
+                }
+            });
+        }
+
+        // Показать информацию о предмете
+        function showItemInfo(itemId) {
+            fetch(`/api/inventory/item/${itemId}/`)
+                .then(response => response.json())
+                .then(itemData => {
+                    currentItemData = itemData; // Сохраняем данные для подсказки
+                    const panel = document.getElementById('inv-item-info-panel');
+                    const item = itemData.item_instance;
+                    
+                    // Заполняем заголовок
+                    document.getElementById('inv-item-info-name').textContent = item.item.name;
+                    
+                    // Заполняем прочность/количество в заголовке
+                    const durabilityQuantityEl = document.getElementById('inv-item-info-durability-quantity');
+                    durabilityQuantityEl.textContent = '';
+                    
+                    if (item.durability) {
+                        durabilityQuantityEl.textContent = `(${item.durability.current}/${item.durability.max})`;
+                    } else if (item.item.is_stackable && item.quantity > 1) {
+                        durabilityQuantityEl.textContent = `(${item.quantity})`;
+                    }
+                    
+                    // Заполняем требования
+                    const requirementsEl = document.getElementById('inv-item-info-requirements');
+                    requirementsEl.innerHTML = '';
+                    
+                    if (item.requirements && Object.keys(item.requirements).length > 0) {
+                        let requirementsHtml = '<div class="inv-requirements-title">Требования:</div>';
+                        for (const [req, value] of Object.entries(item.requirements)) {
+                            requirementsHtml += `<div class="inv-requirement">${req}: ${value}</div>`;
+                        }
+                        requirementsEl.innerHTML = requirementsHtml;
+                    }
+                    
+                    // Заполняем изображение
+                    document.getElementById('inv-item-info-image').src = item.item.image;
+                    document.getElementById('inv-item-info-image').alt = item.item.name;
+                    // Добавляем data-атрибут с ID предмета для подсказки
+                    document.getElementById('inv-item-info-image').setAttribute('data-item-id', item.id);
+                    
+                    // Заполняем характеристики
+                    const statsEl = document.getElementById('inv-item-info-stats');
+                    statsEl.innerHTML = '';
+                    
+                    if (item.stats && Object.keys(item.stats).length > 0) {
+                        let statsHtml = '<div class="inv-stats-title">Характеристики:</div>';
+                        for (const [stat, value] of Object.entries(item.stats)) {
+                            statsHtml += `<div class="inv-stat">${stat}: ${value}</div>`;
+                        }
+                        statsEl.innerHTML = statsHtml;
+                    }
+                    
+                    // Заполняем описание
+                    document.getElementById('inv-item-info-description').textContent = item.item.description || 'Нет описания';
+                    
+                    // Показываем панель
+                    panel.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error loading item info:', error);
+                    alert('Ошибка загрузки информации о предмете');
+                });
+        }
+
+        // Показать расширенную подсказку при наведении на картинку
+        function showItemTooltip(event) {
+            const itemId = event.target.getAttribute('data-item-id');
+            if (!itemId) return;
+            
+            // Загружаем данные предмета если их нет
+            fetch(`/api/inventory/item/${itemId}/`)
+                .then(response => response.json())
+                .then(itemData => {
+                    const tooltip = document.getElementById('inv-item-tooltip');
+                    const item = itemData.item_instance;
+                    
+                    let tooltipHtml = `<div class="inv-tooltip-content">`;
+                    tooltipHtml += `<div class="inv-tooltip-header">${item.item.name} `;
+                    
+                    if (item.durability) {
+                        tooltipHtml += `(${item.durability.current}/${item.durability.max})`;
+                    } else if (item.item.is_stackable && item.quantity > 1) {
+                        tooltipHtml += `(${item.quantity})`;
+                    }
+                    
+                    tooltipHtml += `</div>`;
+                    
+                    // Требования
+                    if (item.requirements && Object.keys(item.requirements).length > 0) {
+                        tooltipHtml += `<div class="inv-tooltip-section">`;
+                        tooltipHtml += `<div class="inv-requirements-title">Требования:</div>`;
+                        for (const [req, value] of Object.entries(item.requirements)) {
+                            tooltipHtml += `<div class="inv-requirement">${req}: ${value}</div>`;
+                        }
+                        tooltipHtml += `</div>`;
+                    }
+                    
+                    // Характеристики
+                    if (item.stats && Object.keys(item.stats).length > 0) {
+                        tooltipHtml += `<div class="inv-tooltip-section">`;
+                        tooltipHtml += `<div class="inv-stats-title">Характеристики:</div>`;
+                        for (const [stat, value] of Object.entries(item.stats)) {
+                            tooltipHtml += `<div class="inv-stat">${stat}: ${value}</div>`;
+                        }
+                        tooltipHtml += `</div>`;
+                    }
+                    
+                    // Описание
+                    if (item.item.description) {
+                        tooltipHtml += `<div class="inv-tooltip-description">${item.item.description}</div>`;
+                    }
+                    
+                    tooltipHtml += `</div>`;
+                    
+                    tooltip.innerHTML = tooltipHtml;
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (event.pageX + 15) + 'px';
+                    tooltip.style.top = (event.pageY + 15) + 'px';
+                })
+                .catch(error => {
+                    console.error('Error loading item tooltip:', error);
+                });
+        }
+
+        // Скрыть подсказку
+        function hideItemTooltip() {
+            document.getElementById('inv-item-tooltip').style.display = 'none';
+        }
+
+        // Закрыть информацию о предмете
+        function closeItemInfo() {
+            document.getElementById('inv-item-info-panel').style.display = 'none';
+            hideItemTooltip();
+            currentItemData = null; // Очищаем данные
+        }
+
+        // Обновление информации о слотах
+        function updateSlotsInfo(data) {
+            document.getElementById('slots-used').textContent = data.slots_used;
+            document.getElementById('slots-total').textContent = data.total_slots;
+            document.getElementById('player-level').textContent = data.player_level;
+            document.getElementById('bonus-slots').textContent = data.bonus_slots;
+        }
+
+        // Остальные функции остаются без изменений
+        function renderPagination(totalPages) {
+            const pagination = document.getElementById('inv-pagination');
+            
+            if (totalPages <= 1) {
+                pagination.style.display = 'none';
+                return;
+            }
+            
+            let html = '';
+            for (let i = 1; i <= totalPages; i++) {
+                html += `
+                    <div class="inv-page-btn ${i === currentPage ? 'inv-active' : ''}" 
+                         data-page="${i}"
+                         onclick="loadInventoryData(${i}, '${invCurrentFilter}', '${invCurrentSubFilter}')">
+                        ${i}
+                    </div>
+                `;
+            }
+            
+            pagination.innerHTML = html;
+            pagination.style.display = 'flex';
+        }
+
+        function updateActiveTabs() {
+            document.querySelectorAll('.inv-filter-tab').forEach(tab => {
+                tab.classList.toggle('inv-active', tab.dataset.filter === invCurrentFilter);
+            });
+            
+            document.querySelectorAll('.inv-sub-filter-tab').forEach(tab => {
+                tab.classList.toggle('inv-active', tab.dataset.subfilter === invCurrentSubFilter);
+            });
+        }
+
+        function setupSubTabs(filter) {
+            const container = document.getElementById('inv-sub-tabs-container');
+            container.innerHTML = '';
+            
+            if (invSubTabsMap[filter]) {
+                let html = `<div class="inv-sub-filter-tabs">`;
+                invSubTabsMap[filter].forEach(tab => {
+                    html += `
+                        <div class="inv-sub-filter-tab ${tab.value === invCurrentSubFilter ? 'inv-active' : ''}" 
+                             data-subfilter="${tab.value}">
+                            ${tab.name}
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                
+                container.innerHTML = html;
+                
+                document.querySelectorAll('.inv-sub-filter-tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        loadInventoryData(1, invCurrentFilter, this.dataset.subfilter);
+                    });
+                });
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.inv-filter-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+                    setupSubTabs(filter);
+                    loadInventoryData(1, filter);
+                });
+            });
+            
+            document.addEventListener('click', function(event) {
+                const panel = document.getElementById('inv-item-info-panel');
+                if (panel.style.display === 'block' && !panel.contains(event.target)) {
+                    closeItemInfo();
+                }
+            });
+            
+            loadInventoryData(1);
+        });
+    </script>
+</body>
+</html>

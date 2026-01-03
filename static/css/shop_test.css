@@ -1,0 +1,134 @@
+    .shop-container {
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .shop-column {
+        padding: 15px;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+    }
+    
+    #items-column {
+        flex: 2;
+    }
+    
+    #filters-column {
+        flex: 1;
+    }
+    
+    .shop-items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .shop-item {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .item-name {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    
+    .item-durability {
+        color: #666;
+    }
+    
+    .item-content {
+        display: flex;
+        padding: 15px;
+        gap: 20px;
+    }
+    
+    .item-image-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 150px;
+    }
+    
+    .item-image {
+        max-width: 100px;
+        max-height: 100px;
+        margin-bottom: 10px;
+    }
+    
+    .price-display {
+        font-weight: bold;
+        color: #2a6496;
+    }
+    
+    .bonus-section, .requirements-section {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .bonus-list, .requirement-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin: 5px 0;
+    }
+    
+    .bonus-list li, .requirement-list li {
+        padding: 3px 0;
+        font-size: 0.9em;
+    }
+    
+    .bonus-positive {
+        color: green;
+    }
+    
+    .requirement-negative {
+        color: #d9534f;
+    }
+    
+    .category-title {
+        font-weight: bold;
+        margin-top: 15px;
+        margin-bottom: 5px;
+        color: #333;
+    }
+    
+    .filter-item {
+        padding: 8px 12px;
+        margin-bottom: 5px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .filter-item:hover {
+        background: #d0d0d0;
+    }
+    
+    .filter-item.active {
+        background: #a0c0e0;
+        font-weight: bold;
+    }
+    
+    .empty-category {
+        color: #999;
+        font-style: italic;
+    }
+    
+    .buy-section {
+        min-width: 150px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }

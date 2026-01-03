@@ -1,0 +1,1119 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/bank_panel.css' %}">    
+</head>
+<body class="bank-body">
+<div class="bank-container">
+  <div class="bank-header">Банк Вира - Хранилище ваших сбережений</div>
+  <div id="main-area" class="bank-content">
+    <!-- вход -->
+    <div id="login-section" class="bank-login-section">
+      <div class="bank-form-group"><label class="bank-form-label">Номер счета:</label><input type="text" id="login-number" class="bank-form-input"></div>
+      <div class="bank-form-group"><label class="bank-form-label">Пароль:</label><input type="password" id="login-pass" class="bank-form-input"></div>
+      <button id="btn-login" class="bank-button">Войти</button>
+      <button id="btn-add-test" class="bank-button bank-register-button">Добавить тестовый счет</button>
+      <div class="bank-form-group" style="margin-top:20px;">
+        <label class="bank-form-label">Ваши счета:</label>
+        <div id="accounts-list" style="font-size:16px;color:#f0c060;">
+          <!-- Список счетов будет здесь -->
+        </div>
+        <button id="btn-create-account" class="bank-button" style="margin-top:10px;">Создать новый счет</button>
+      </div>
+    </div>
+    <!-- счет -->
+    <div id="account-section" style="display:none; width:100%;">
+      <div class="account-area">
+        <div class="left-area">
+          <!-- Основные блоки (перевод, внести/снять) -->
+          <div id="main-sections">
+            <div class="transfer-container">
+              <div class="section-block transfer-left">
+                <h4>Перевод</h4>
+                <p>Счёт: <span id="acc-number">—</span></p>
+                <input id="recipient" placeholder="Получатель" class="bank-form-input">
+                <div style="font-size:12px;color:#a09070;cursor:pointer" onclick="fillAdmin()">Админ: 000000000001</div>
+                <input id="transfer-amt" type="number" placeholder="Сумма" class="bank-form-input">
+                <select id="transfer-comment" class="bank-form-input" required>
+                  <option value="" disabled selected>Выберите комментарий</option>
+                  <option value="Штраф">Штраф</option>
+                  <option value="Вступление в Клан">Вступление в клан</option>
+                  <option value="Проверка">Проверка</option>
+                  <option value="Услуги Художника">Услуги Художника</option>
+                  <option value="Оплата за Найм">Оплата за Найм</option>
+                  <option value="Покупка клана">Покупка клана</option>
+                  <option value="Ошибка / Возврат">Ошибка / Возврат</option>
+                </select>
+                <button onclick="sendTransfer()" class="bank-button">Отправить</button>
+              </div>
+
+              <div class="section-block transfer-right">
+                <h4>Ресурсы</h4>
+                <div class="resources-container">
+                  <div class="resources-column">
+                    <h5>На руках</h5>
+                    <div id="onhand-resources-list" class="resources-list">
+                      <!-- Здесь будет список ресурсов на руках -->
+                    </div>
+                  </div>
+                  <div class="resources-column">
+                    <h5>В банке</h5>
+                    <div id="bank-resources-list" class="resources-list">
+                      <!-- Здесь будет список ресурсов в банке -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-block">
+              <h4>Внести и Снять</h4>
+              <div class="deposit-withdraw-container">
+                <!-- Секция Внести -->
+                <div id="deposit-list" class="deposit-withdraw-section">
+                  <h5 style="margin-bottom:8px;">Внести</h5>
+                </div>
+                <!-- Секция Снять -->
+                <div id="withdraw-list" class="deposit-withdraw-section">
+                  <h5 style="margin-bottom:8px;">Снять</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Биржа ресурсов -->
+          <div id="resource-market" class="resource-market">
+            <div class="section-block">
+              <h4>Биржа ресурсов</h4>
+              <div class="resource-tabs">
+                <button onclick="openTab('resource', 'sulfur')" class="active">Сера</button>
+                <button onclick="openTab('resource', 'silver-dust')">Серебряная пыль</button>
+                <button onclick="openTab('resource', 'gold')">Золото</button>
+                <button onclick="openTab('resource', 'gold-dust')">Золотая пыль</button>
+              </div>
+
+              <!-- Вкладка Сера -->
+              <div id="resource-sulfur" class="resource-content active">
+                <div class="market-columns">
+                  <div class="market-column">
+                    <h5>Продают</h5>
+                    <div id="sulfur-sell-offers">
+                      <!-- Заявки на продажу серы -->
+                    </div>
+                    <button onclick="createSellOffer('sulfur')" class="bank-button" style="margin-top:10px;">Создать заявку на продажу</button>
+                  </div>
+                  <div class="market-column">
+                    <h5>Покупают</h5>
+                    <div id="sulfur-buy-offers">
+                      <!-- Заявки на покупку серы -->
+                    </div>
+                    <button onclick="createBuyOffer('sulfur')" class="bank-button" style="margin-top:10px;">Создать заявку на покупку</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Вкладка Серебряная пыль -->
+              <div id="resource-silver-dust" class="resource-content">
+                <div class="market-columns">
+                  <div class="market-column">
+                    <h5>Продают</h5>
+                    <div id="silver-dust-sell-offers">
+                      <!-- Заявки на продажу серебряной пыли -->
+                    </div>
+                    <button onclick="createSellOffer('silver-dust')" class="bank-button" style="margin-top:10px;">Создать заявку на продажу</button>
+                  </div>
+                  <div class="market-column">
+                    <h5>Покупают</h5>
+                    <div id="silver-dust-buy-offers">
+                      <!-- Заявки на покупку серебряной пыли -->
+                    </div>
+                    <button onclick="createBuyOffer('silver-dust')" class="bank-button" style="margin-top:10px;">Создать заявку на покупку</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Вкладка Золото -->
+              <div id="resource-gold" class="resource-content">
+                <div class="market-columns">
+                  <div class="market-column">
+                    <h5>Продают</h5>
+                    <div id="gold-sell-offers">
+                      <!-- Заявки на продажу золота -->
+                    </div>
+                    <button onclick="createSellOffer('gold')" class="bank-button" style="margin-top:10px;">Создать заявку на продажу</button>
+                  </div>
+                  <div class="market-column">
+                    <h5>Покупают</h5>
+                    <div id="gold-buy-offers">
+                      <!-- Заявки на покупку золота -->
+                    </div>
+                    <button onclick="createBuyOffer('gold')" class="bank-button" style="margin-top:10px;">Создать заявку на покупку</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Вкладка Золотая пыль -->
+              <div id="resource-gold-dust" class="resource-content">
+                <div class="market-columns">
+                  <div class="market-column">
+                    <h5>Продают</h5>
+                    <div id="gold-dust-sell-offers">
+                      <!-- Заявки на продажу золотой пыли -->
+                    </div>
+                    <button onclick="createSellOffer('gold-dust')" class="bank-button" style="margin-top:10px;">Создать заявку на продажу</button>
+                  </div>
+                  <div class="market-column">
+                    <h5>Покупают</h5>
+                    <div id="gold-dust-buy-offers">
+                      <!-- Заявки на покупку золотой пыли -->
+                    </div>
+                    <button onclick="createBuyOffer('gold-dust')" class="bank-button" style="margin-top:10px;">Создать заявку на покупку</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Биржа марок -->
+          <div id="stamps-market" class="stamps-market">
+            <div class="section-block">
+              <h4>Биржа марок</h4>
+              <div class="resource-tabs">
+                <button class="active">Марки</button>
+              </div>
+
+              <div id="stamps-content" class="resource-content active">
+                <div class="market-columns">
+                  <div class="market-column">
+                    <h5>Продают</h5>
+                    <div id="stamps-sell-offers">
+                      <!-- Заявки на продажу марок -->
+                    </div>
+                    <button onclick="createSellOffer('stamps')" class="bank-button" style="margin-top:10px;">Создать заявку на продажу</button>
+                  </div>
+                  <div class="market-column">
+                    <h5>Покупают</h5>
+                    <div id="stamps-buy-offers">
+                      <!-- Заявки на покупку марок -->
+                    </div>
+                    <button onclick="createBuyOffer('stamps')" class="bank-button" style="margin-top:10px;">Создать заявку на покупку</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Статистика -->
+          <div id="stats-market" class="stats-market">
+            <div class="section-block">
+              <h4>Статистика сделок</h4>
+              <div class="stats-tabs">
+                <button onclick="openTab('stats', 'sulfur')" class="active">Сера</button>
+                <button onclick="openTab('stats', 'silver-dust')">Серебряная пыль</button>
+                <button onclick="openTab('stats', 'gold')">Золото</button>
+                <button onclick="openTab('stats', 'gold-dust')">Золотая пыль</button>
+                <button onclick="openTab('stats', 'stamps')">Марки</button>
+              </div>
+
+              <!-- Вкладка Сера -->
+              <div id="stats-sulfur" class="stats-content active">
+                <div class="stats-columns">
+                  <div class="stats-column">
+                    <h5>Продано</h5>
+                    <div id="stats-sulfur-sold">
+                      <!-- Статистика продаж серы -->
+                    </div>
+                  </div>
+                  <div class="stats-column">
+                    <h5>Куплено</h5>
+                    <div id="stats-sulfur-bought">
+                      <!-- Статистика покупок серы -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Вкладка Серебряная пыль -->
+              <div id="stats-silver-dust" class="stats-content">
+                <div class="stats-columns">
+                  <div class="stats-column">
+                    <h5>Продано</h5>
+                    <div id="stats-silver-dust-sold">
+                      <!-- Статистика продаж серебряной пыли -->
+                    </div>
+                  </div>
+                  <div class="stats-column">
+                    <h5>Куплено</h5>
+                    <div id="stats-silver-dust-bought">
+                      <!-- Статистика покупок серебряной пыли -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Вкладка Золото -->
+              <div id="stats-gold" class="stats-content">
+                <div class="stats-columns">
+                  <div class="stats-column">
+                    <h5>Продано</h5>
+                    <div id="stats-gold-sold">
+                      <!-- Статистика продаж золота -->
+                    </div>
+                  </div>
+                  <div class="stats-column">
+                    <h5>Куплено</h5>
+                    <div id="stats-gold-bought">
+                      <!-- Статистика покупок золота -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Вкладка Золотая пыль -->
+              <div id="stats-gold-dust" class="stats-content">
+                <div class="stats-columns">
+                  <div class="stats-column">
+                    <h5>Продано</h5>
+                    <div id="stats-gold-dust-sold">
+                      <!-- Статистика продаж золотой пыли -->
+                    </div>
+                  </div>
+                  <div class="stats-column">
+                    <h5>Куплено</h5>
+                    <div id="stats-gold-dust-bought">
+                      <!-- Статистика покупок золотой пыли -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Вкладка Марки -->
+              <div id="stats-stamps" class="stats-content">
+                <div class="stats-columns">
+                  <div class="stats-column">
+                    <h5>Продано</h5>
+                    <div id="stats-stamps-sold">
+                      <!-- Статистика продаж марок -->
+                    </div>
+                  </div>
+                  <div class="stats-column">
+                    <h5>Куплено</h5>
+                    <div id="stats-stamps-bought">
+                      <!-- Статистика покупок марок -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="right-area">
+          <div class="tabs-container">
+            <button onclick="showMain()">Основное</button>
+            <button onclick="showMarket('resource')">Биржа ресурсов</button>
+            <button onclick="showMarket('stamps')">Биржа марок</button>
+            <button onclick="showMarket('stats')">Статистика</button>
+            <button onclick="reset()">Сменить счёт</button>
+          </div>
+          <div class="price-box">
+            <div class="price-section">
+              <h5>Средняя цена</h5>
+              <p id="average-prices">Монеты:5g<br>Золото:100g<br>Серебро:50g<br>Пыль:20g<br>Марки:150g</p>
+            </div>
+            <div class="price-section">
+              <h5>Минимальная цена</h5>
+              <p id="min-prices">Монеты:4g<br>Золото:95g<br>Серебро:45g<br>Пыль:18g<br>Марки:140g</p>
+            </div>
+            <div class="price-section">
+              <h5>Максимальная цена</h5>
+              <p id="max-prices">Монеты:6g<br>Золото:105g<br>Серебро:55g<br>Пыль:22g<br>Марки:160g</p>
+            </div>
+          </div>
+          <div class="exchange-section">
+            <div class="exchange-tabs">
+              <button onclick="openExchangeTab('stamps')" class="active">Обмен марок</button>
+              <button onclick="openExchangeTab('resources')">Обмен ресурсов</button>
+            </div>
+            
+            <!-- Вкладка Обмен марок -->
+            <div id="exchange-stamps" class="exchange-content active">
+              <h4>Обмен за марки <span id="total-stamps">(Всего: 17)</span></h4>
+              <div class="exchange-list">
+                <div class="exchange-item">
+                  <span>Монеты (<span id="coins-rate">4000</span>кр за 1 марку)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="coins-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchange('coins')">Обменять</button>
+                  </div>
+                </div>
+                <div class="exchange-item">
+                  <span>Серебро (<span id="silver-rate">400</span>гр за 1 марку)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="silver-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchange('silver')">Обменять</button>
+                  </div>
+                </div>
+                <div class="exchange-item">
+                  <span>Серебрянная пыль (<span id="silver-dust-rate">300</span>гр за 1 марку)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="silver-dust-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchange('silver-dust')">Обменять</button>
+                  </div>
+                </div>
+                <div class="exchange-item">
+                  <span>Золото (<span id="gold-rate">200</span>гр за 1 марку)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="gold-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchange('gold')">Обменять</button>
+                  </div>
+                </div>
+                <div class="exchange-item">
+                  <span>Золотая пыль (<span id="gold-dust-rate">100</span>гр за 1 марку)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="gold-dust-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchange('gold-dust')">Обменять</button>
+                  </div>
+                </div>
+                <div class="exchange-item">
+                  <span>Варяжские Камни (<span id="stones-rate">75</span>шт за 1 марку)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="stones-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchange('stones')">Обменять</button>
+                  </div>
+                </div>
+                <div class="exchange-item">
+                  <span>Жетоны Валькнут (<span id="tokens-rate">250</span>шт за 1 марку)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="tokens-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchange('tokens')">Обменять</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Вкладка Обмен ресурсов -->
+            <div id="exchange-resources" class="exchange-content">
+              <h4>Обмен ресурсов</h4>
+              <div class="exchange-list">
+                <div class="exchange-item">
+                  <span>Сера (<span id="sulfur-rate">5</span>g за 1 единицу)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="sulfur-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchangeResource('sulfur')">Обменять</button>
+                  </div>
+                </div>
+                <div class="exchange-item">
+                  <span>Серебрянная пыль (<span id="silver-dust-res-rate">20</span>g за 1 единицу)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="silver-dust-res-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchangeResource('silver-dust-res')">Обменять</button>
+                  </div>
+                </div>
+                <div class="exchange-item">
+                  <span>Золото (<span id="gold-res-rate">100</span>g за 1 единицу)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="gold-res-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchangeResource('gold-res')">Обменять</button>
+                  </div>
+                </div>
+                <div class="exchange-item">
+                  <span>Золотая пыль (<span id="gold-dust-res-rate">25</span>g за 1 единицу)</span>
+                  <div class="exchange-controls">
+                    <input type="number" id="gold-dust-res-amount" min="1" value="1" class="exchange-input">
+                    <button onclick="exchangeResource('gold-dust-res')">Обменять</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для создания заявки -->
+<div id="offer-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#2a241c; padding:20px; border:2px solid #f0c060; z-index:1000; width:400px;">
+  <h3 style="color:#f0c060; text-align:center; margin-bottom:20px;" id="offer-modal-title">Создание заявки</h3>
+  <div class="bank-form-group">
+    <label class="bank-form-label">Количество:</label>
+    <input type="number" id="offer-amount" class="bank-form-input" min="1">
+  </div>
+  <div class="bank-form-group">
+    <label class="bank-form-label">Цена за единицу:</label>
+    <input type="number" id="offer-price" class="bank-form-input" min="1">
+  </div>
+  <div style="text-align:center; margin-top:15px;">
+    <button onclick="submitOffer()" class="bank-button">Создать заявку</button>
+    <button onclick="closeOfferModal()" class="bank-button" style="background:#6a5741;">Отмена</button>
+  </div>
+</div>
+
+<!-- Модальное окно для создания счета -->
+<div id="create-account-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#2a241c; padding:20px; border:2px solid #f0c060; z-index:1000; width:400px;">
+  <h3 style="color:#f0c060; text-align:center; margin-bottom:20px;">Создание нового счета</h3>
+  <div class="bank-form-group">
+    <label class="bank-form-label">Номер счета:</label>
+    <input type="text" id="new-account-number" class="bank-form-input" readonly style="background:#3a3128; color:#f0c060; font-weight:bold;">
+  </div>
+  <div class="bank-form-group">
+    <label class="bank-form-label">Пароль:</label>
+    <input type="password" id="new-account-password" class="bank-form-input" placeholder="Введите пароль">
+  </div>
+  <div class="bank-form-group">
+    <label class="bank-form-label">Подтверждение пароля:</label>
+    <input type="password" id="new-account-password-confirm" class="bank-form-input" placeholder="Подтвердите пароль">
+  </div>
+  <div style="text-align:center; margin-top:15px;">
+    <button onclick="submitNewAccount()" class="bank-button">Создать счет</button>
+    <button onclick="closeCreateAccountModal()" class="bank-button" style="background:#6a5741;">Отмена</button>
+  </div>
+</div>
+
+<script>
+// Данные для обменных курсов
+const exchangeRates = {
+  'coins': 4000,
+  'silver': 400,
+  'silver-dust': 300,
+  'gold': 200,
+  'gold-dust': 100,
+  'stones': 75,
+  'tokens': 250
+};
+
+const resourceRates = {
+  'sulfur': 5,
+  'silver-dust-res': 20,
+  'gold-res': 100,
+  'gold-dust-res': 25
+};
+
+// Данные для цен на ресурсы
+const priceData = {
+  average: {
+    coins: 5,
+    gold: 100,
+    silver: 50,
+    dust: 20,
+    stamps: 150
+  },
+  min: {
+    coins: 4,
+    gold: 95,
+    silver: 45,
+    dust: 18,
+    stamps: 140
+  },
+  max: {
+    coins: 6,
+    gold: 105,
+    silver: 55,
+    dust: 22,
+    stamps: 160
+  }
+};
+
+// Данные для биржи
+const marketOffers = {
+  sulfur: { sell: [], buy: [] },
+  silverDust: { sell: [], buy: [] },
+  gold: { sell: [], buy: [] },
+  goldDust: { sell: [], buy: [] },
+  stamps: { sell: [], buy: [] }
+};
+
+// Данные для статистики
+const statsData = {
+  sulfur: { sold: [], bought: [] },
+  silverDust: { sold: [], bought: [] },
+  gold: { sold: [], bought: [] },
+  goldDust: { sold: [], bought: [] },
+  stamps: { sold: [], bought: [] }
+};
+
+const testAcct = {
+  number: '784522912345',
+  pass:'1234',
+  onHand:{монеты:150,серебро:80,серебряная:35,золото:20,золотая:10,марки:5,камни:15,жетоны:30},
+  inBank:{монеты:400,серебро:120,серебряная:50,золото:60,золотая:25,марки:12,камни:40,жетоны:75},
+  balance:350
+};
+
+// Данные пользователя
+const userData = {
+  accounts: [testAcct],
+  isClanLeader: false,
+  maxPersonalAccounts: 5
+};
+
+let currentOfferType = '';
+let currentResource = '';
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+  updateAccountsList();
+  updateExchangeRates();
+  updatePriceDisplay();
+  updateMarketOffers();
+  updateStatsDisplay();
+});
+
+document.getElementById('btn-add-test').onclick=()=>{
+  document.getElementById('login-number').value=testAcct.number;
+  document.getElementById('login-pass').value=testAcct.pass;
+};
+
+document.getElementById('btn-create-account').onclick=()=>{
+  openCreateAccountModal();
+};
+
+document.getElementById('btn-login').onclick=()=>{
+  const accountNumber = document.getElementById('login-number').value;
+  const password = document.getElementById('login-pass').value;
+  
+  const account = userData.accounts.find(acc => acc.number === accountNumber && acc.pass === password);
+  if(account){
+    document.getElementById('login-section').style.display='none';
+    document.getElementById('account-section').style.display='block';
+    document.getElementById('acc-number').textContent=formatAccountNumber(account.number);
+    fillResources();
+    fillBankResources();
+    updateStampsCount();
+  } else alert('Неверный номер счета или пароль');
+};
+
+function fillAdmin(){
+  document.getElementById('recipient').value='000000000001';
+}
+
+function formatAccountNumber(number) {
+  // Форматируем 12-значный номер для отображения: XXXX-XXXX-XXXX
+  return number.replace(/(\d{4})(\d{4})(\d{4})/, '$1-$2-$3');
+}
+
+function fillResources(){
+  let dp = '', wd = '';
+  for(let k in testAcct.onHand){
+    dp += `<div><label>${k}</label><input type="number" placeholder="Сколько" id="deposit-${k}"><button onclick="fillMaxAmount('deposit-${k}', ${testAcct.onHand[k]})">Все</button><button onclick="depositResource('${k}')">Внести</button></div>`;
+  }
+  for(let k in testAcct.inBank){
+    wd += `<div><label>${k}</label><input type="number" placeholder="Сколько" id="withdraw-${k}"><button onclick="fillMaxAmount('withdraw-${k}', ${testAcct.inBank[k]})">Все</button><button onclick="withdrawResource('${k}')">Снять</button></div>`;
+  }
+  document.getElementById('deposit-list').innerHTML = '<h5 style="margin-bottom:8px;">Внести</h5>' + dp;
+  document.getElementById('withdraw-list').innerHTML = '<h5 style="margin-bottom:8px;">Снять</h5>' + wd;
+}
+
+function fillMaxAmount(inputId, maxAmount) {
+  document.getElementById(inputId).value = maxAmount;
+}
+
+function depositResource(resource) {
+  const amount = parseInt(document.getElementById(`deposit-${resource}`).value);
+  if (isNaN(amount) || amount < 1) {
+    alert('Введите корректное количество');
+    return;
+  }
+  if (amount > testAcct.onHand[resource]) {
+    alert('Недостаточно ресурсов на руках');
+    return;
+  }
+  alert(`Внесено ${amount} ${resource}`);
+  // Здесь будет логика внесения
+}
+
+function withdrawResource(resource) {
+  const amount = parseInt(document.getElementById(`withdraw-${resource}`).value);
+  if (isNaN(amount) || amount < 1) {
+    alert('Введите корректное количество');
+    return;
+  }
+  if (amount > testAcct.inBank[resource]) {
+    alert('Недостаточно ресурсов в банке');
+    return;
+  }
+  alert(`Снято ${amount} ${resource}`);
+  // Здесь будет логика снятия
+}
+
+function fillBankResources() {
+  let onHandHtml = '', bankHtml = '';
+  for(let k in testAcct.onHand){
+    onHandHtml += `<div class="resource-item"><span class="resource-name">${k}:</span><span class="resource-amount">${testAcct.onHand[k]}</span></div>`;
+  }
+  for(let k in testAcct.inBank){
+    bankHtml += `<div class="resource-item"><span class="resource-name">${k}:</span><span class="resource-amount">${testAcct.inBank[k]}</span></div>`;
+  }
+  document.getElementById('onhand-resources-list').innerHTML = onHandHtml;
+  document.getElementById('bank-resources-list').innerHTML = bankHtml;
+}
+
+function updateStampsCount() {
+  const totalStamps = testAcct.onHand.марки + testAcct.inBank.марки;
+  document.getElementById('total-stamps').textContent = `(Всего: ${totalStamps})`;
+}
+
+// Обновление отображения курсов обмена
+function updateExchangeRates() {
+  for (let resource in exchangeRates) {
+    document.getElementById(`${resource}-rate`).textContent = exchangeRates[resource];
+  }
+  for (let resource in resourceRates) {
+    document.getElementById(`${resource}-rate`).textContent = resourceRates[resource];
+  }
+}
+
+// Обновление отображения цен
+function updatePriceDisplay() {
+  const avgPrices = priceData.average;
+  const minPrices = priceData.min;
+  const maxPrices = priceData.max;
+  
+  document.getElementById('average-prices').innerHTML = 
+    `Монеты:${avgPrices.coins}g<br>Золото:${avgPrices.gold}g<br>Серебро:${avgPrices.silver}g<br>Пыль:${avgPrices.dust}g<br>Марки:${avgPrices.stamps}g`;
+  
+  document.getElementById('min-prices').innerHTML = 
+    `Монеты:${minPrices.coins}g<br>Золото:${minPrices.gold}g<br>Серебро:${minPrices.silver}g<br>Пыль:${minPrices.dust}g<br>Марки:${minPrices.stamps}g`;
+  
+  document.getElementById('max-prices').innerHTML = 
+    `Монеты:${maxPrices.coins}g<br>Золото:${maxPrices.gold}g<br>Серебро:${maxPrices.silver}g<br>Пыль:${maxPrices.dust}g<br>Марки:${maxPrices.stamps}g`;
+}
+
+// Обновление заявок на бирже
+function updateMarketOffers() {
+  for (let resource in marketOffers) {
+    updateResourceOffers(resource);
+  }
+}
+
+function updateResourceOffers(resource) {
+  const sellOffers = document.getElementById(`${resource}-sell-offers`);
+  const buyOffers = document.getElementById(`${resource}-buy-offers`);
+  
+  if (sellOffers) {
+    sellOffers.innerHTML = marketOffers[resource].sell.map(offer => 
+      `<div class="market-offer">
+        <div class="market-offer-info">
+          <div class="market-offer-amount">${offer.amount} ${getResourceName(resource)}</div>
+          <div class="market-offer-price">по ${offer.price}g за единицу</div>
+        </div>
+        <div class="market-offer-controls">
+          <button onclick="acceptOffer('${resource}', 'sell', ${offer.id})">Купить</button>
+        </div>
+      </div>`
+    ).join('');
+  }
+  
+  if (buyOffers) {
+    buyOffers.innerHTML = marketOffers[resource].buy.map(offer => 
+      `<div class="market-offer">
+        <div class="market-offer-info">
+          <div class="market-offer-amount">${offer.amount} ${getResourceName(resource)}</div>
+          <div class="market-offer-price">по ${offer.price}g за единицу</div>
+        </div>
+        <div class="market-offer-controls">
+          <button onclick="acceptOffer('${resource}', 'buy', ${offer.id})">Продать</button>
+        </div>
+      </div>`
+    ).join('');
+  }
+}
+
+function getResourceName(resource) {
+  const names = {
+    'sulfur': 'серы',
+    'silverDust': 'серебряной пыли',
+    'gold': 'золота',
+    'goldDust': 'золотой пыли',
+    'stamps': 'марок'
+  };
+  return names[resource] || resource;
+}
+
+// Обновление статистики
+function updateStatsDisplay() {
+  for (let resource in statsData) {
+    updateResourceStats(resource);
+  }
+}
+
+function updateResourceStats(resource) {
+  const soldStats = document.getElementById(`stats-${resource}-sold`);
+  const boughtStats = document.getElementById(`stats-${resource}-bought`);
+  
+  if (soldStats) {
+    soldStats.innerHTML = statsData[resource].sold.map(deal => 
+      `<div class="stats-item">
+        <div class="stats-info">
+          <div class="stats-amount">${deal.amount} ${getResourceName(resource)}</div>
+          <div class="stats-price">по ${deal.price}g за единицу</div>
+          <div class="stats-total">Всего: ${deal.total}g</div>
+        </div>
+      </div>`
+    ).join('');
+  }
+  
+  if (boughtStats) {
+    boughtStats.innerHTML = statsData[resource].bought.map(deal => 
+      `<div class="stats-item">
+        <div class="stats-info">
+          <div class="stats-amount">${deal.amount} ${getResourceName(resource)}</div>
+          <div class="stats-price">по ${deal.price}g за единицу</div>
+          <div class="stats-total">Всего: ${deal.total}g</div>
+        </div>
+      </div>`
+    ).join('');
+  }
+}
+
+function exchange(resource) {
+  const amount = parseInt(document.getElementById(`${resource}-amount`).value);
+  if (isNaN(amount) || amount < 1) {
+    alert('Введите корректное количество марок для обмена');
+    return;
+  }
+  
+  if (testAcct.onHand.марки < amount) {
+    alert('Недостаточно марок на руках для обмена');
+    return;
+  }
+  
+  const resourceName = {
+    'coins': 'монеты',
+    'silver': 'серебро',
+    'silver-dust': 'серебряная пыль',
+    'gold': 'золото',
+    'gold-dust': 'золотая пыль',
+    'stones': 'камни',
+    'tokens': 'жетоны'
+  };
+  
+  const total = amount * exchangeRates[resource];
+  alert(`Обменяем ${amount} марку(и) на ${total} ${resourceName[resource]}`);
+}
+
+function exchangeResource(resource) {
+  const amount = parseInt(document.getElementById(`${resource}-amount`).value);
+  if (isNaN(amount) || amount < 1) {
+    alert('Введите корректное количество ресурсов для обмена');
+    return;
+  }
+  
+  const resourceName = {
+    'sulfur': 'серы',
+    'silver-dust-res': 'серебряной пыли',
+    'gold-res': 'золота',
+    'gold-dust-res': 'золотой пыли'
+  };
+  
+  const total = amount * resourceRates[resource];
+  alert(`Обменяем ${amount} единиц ${resourceName[resource]} на ${total}g`);
+}
+
+// Функции для работы с заявками
+function createSellOffer(resource) {
+  currentOfferType = 'sell';
+  currentResource = resource;
+  document.getElementById('offer-modal-title').textContent = `Продажа ${getResourceName(resource)}`;
+  document.getElementById('offer-modal').style.display = 'block';
+}
+
+function createBuyOffer(resource) {
+  currentOfferType = 'buy';
+  currentResource = resource;
+  document.getElementById('offer-modal-title').textContent = `Покупка ${getResourceName(resource)}`;
+  document.getElementById('offer-modal').style.display = 'block';
+}
+
+function submitOffer() {
+  const amount = parseInt(document.getElementById('offer-amount').value);
+  const price = parseInt(document.getElementById('offer-price').value);
+  
+  if (isNaN(amount) || amount < 1) {
+    alert('Введите корректное количество');
+    return;
+  }
+  
+  if (isNaN(price) || price < 1) {
+    alert('Введите корректную цену');
+    return;
+  }
+  
+  // Проверка лимитов цены
+  const resourceKey = getPriceResourceKey(currentResource);
+  if (price < priceData.min[resourceKey] || price > priceData.max[resourceKey]) {
+    alert(`Цена должна быть в пределах от ${priceData.min[resourceKey]} до ${priceData.max[resourceKey]}g`);
+    return;
+  }
+  
+  const offer = {
+    id: Date.now(),
+    amount: amount,
+    price: price,
+    account: testAcct.number
+  };
+  
+  marketOffers[currentResource][currentOfferType].push(offer);
+  updateMarketOffers();
+  closeOfferModal();
+  alert('Заявка создана успешно!');
+}
+
+function getPriceResourceKey(resource) {
+  const keys = {
+    'sulfur': 'coins',
+    'silverDust': 'dust',
+    'gold': 'gold',
+    'goldDust': 'dust',
+    'stamps': 'stamps'
+  };
+  return keys[resource] || resource;
+}
+
+function acceptOffer(resource, type, offerId) {
+  const offerIndex = marketOffers[resource][type].findIndex(offer => offer.id === offerId);
+  if (offerIndex !== -1) {
+    const offer = marketOffers[resource][type][offerIndex];
+    alert(`Выполняется сделка: ${type === 'sell' ? 'Покупка' : 'Продажа'} ${offer.amount} ${getResourceName(resource)} по ${offer.price}g за единицу`);
+    
+    // Добавляем сделку в статистику
+    const deal = {
+      amount: offer.amount,
+      price: offer.price,
+      total: offer.amount * offer.price
+    };
+    
+    if (type === 'sell') {
+      statsData[resource].bought.push(deal);
+    } else {
+      statsData[resource].sold.push(deal);
+    }
+    
+    // Обновляем средние цены
+    updateAveragePrices();
+    
+    // Удаляем выполненную заявку
+    marketOffers[resource][type].splice(offerIndex, 1);
+    updateMarketOffers();
+    updateStatsDisplay();
+  }
+}
+
+function updateAveragePrices() {
+  // Здесь будет логика пересчета средних цен на основе статистики сделок
+  // Пока оставим статические значения
+}
+
+function closeOfferModal() {
+  document.getElementById('offer-modal').style.display = 'none';
+  document.getElementById('offer-amount').value = '';
+  document.getElementById('offer-price').value = '';
+}
+
+// Функции для работы со счетами
+function updateAccountsList() {
+  const accountsList = document.getElementById('accounts-list');
+  accountsList.innerHTML = userData.accounts.map(account => 
+    `<div>${formatAccountNumber(account.number)}</div>`
+  ).join('');
+}
+
+function openCreateAccountModal() {
+  if (userData.accounts.length >= userData.maxPersonalAccounts + (userData.isClanLeader ? 1 : 0)) {
+    alert('Достигнуто максимальное количество счетов');
+    return;
+  }
+  
+  // Генерируем уникальный 12-значный номер счета
+  const accountNumber = generateAccountNumber();
+  document.getElementById('new-account-number').value = accountNumber;
+  document.getElementById('new-account-password').value = '';
+  document.getElementById('new-account-password-confirm').value = '';
+  document.getElementById('create-account-modal').style.display = 'block';
+}
+
+function submitNewAccount() {
+  const accountNumber = document.getElementById('new-account-number').value;
+  const password = document.getElementById('new-account-password').value;
+  const passwordConfirm = document.getElementById('new-account-password-confirm').value;
+  
+  if (!password) {
+    alert('Введите пароль');
+    return;
+  }
+  
+  if (password !== passwordConfirm) {
+    alert('Пароли не совпадают');
+    return;
+  }
+  
+  const newAccount = {
+    number: accountNumber,
+    pass: password,
+    onHand: {монеты:0,серебро:0,серебряная:0,золото:0,золотая:0,марки:0,камни:0,жетоны:0},
+    inBank: {монеты:0,серебро:0,серебряная:0,золото:0,золотая:0,марки:0,камни:0,жетоны:0},
+    balance: 0
+  };
+  
+  userData.accounts.push(newAccount);
+  updateAccountsList();
+  closeCreateAccountModal();
+  alert(`Создан новый счет: ${formatAccountNumber(accountNumber)}\nСохраните номер счета и пароль!`);
+}
+
+function generateAccountNumber() {
+  // Генерируем 12-значный номер счета
+  let number = '';
+  for (let i = 0; i < 12; i++) {
+    number += Math.floor(Math.random() * 10);
+  }
+  
+  // Проверяем уникальность
+  const isUnique = !userData.accounts.some(acc => acc.number === number);
+  if (!isUnique) {
+    return generateAccountNumber(); // Рекурсивно генерируем новый номер, если не уникален
+  }
+  
+  return number;
+}
+
+function closeCreateAccountModal() {
+  document.getElementById('create-account-modal').style.display = 'none';
+}
+
+// Функции для работы с вкладками обмена
+function openExchangeTab(tabName) {
+  document.querySelectorAll('.exchange-content').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  document.querySelectorAll('.exchange-tabs button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  document.getElementById('exchange-' + tabName).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function reset(){
+  if(confirm('Вы уверены, что хотите сменить счет? Все несохраненные данные будут потеряны.')) {
+    document.getElementById('account-section').style.display='none';
+    document.getElementById('login-section').style.display='flex';
+    document.getElementById('login-pass').value=''; 
+    document.getElementById('recipient').value='';
+    hideAllMarkets();
+    document.getElementById('main-sections').style.display = 'block';
+  }
+}
+
+function showMain() {
+  hideAllMarkets();
+  document.getElementById('main-sections').style.display = 'block';
+}
+
+// Функции для работы с биржами
+function hideAllMarkets() {
+  document.getElementById('resource-market').style.display = 'none';
+  document.getElementById('stamps-market').style.display = 'none';
+  document.getElementById('stats-market').style.display = 'none';
+}
+
+function showMarket(marketType) {
+  hideAllMarkets();
+  document.getElementById('main-sections').style.display = 'none';
+  document.getElementById(marketType + '-market').style.display = 'block';
+  
+  // Активируем первую вкладку для выбранного рынка
+  if (marketType === 'resource') {
+    openTab('resource', 'sulfur');
+  } else if (marketType === 'stats') {
+    openTab('stats', 'sulfur');
+  }
+}
+
+function openTab(marketType, tabName) {
+  const tabsContainer = document.getElementById(marketType + '-market');
+  tabsContainer.querySelectorAll('.resource-content, .stats-content').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  tabsContainer.querySelectorAll('.resource-tabs button, .stats-tabs button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  document.getElementById(marketType + '-' + tabName).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function sendTransfer() {
+  const comment = document.getElementById('transfer-comment').value;
+  if (!comment) {
+    alert('Пожалуйста, выберите комментарий для перевода');
+    return;
+  }
+  alert('Перевод отправлен с комментарием: ' + comment);
+}
+</script>
+
+<style>
+/* Стили для вкладок обмена */
+.exchange-tabs {
+  display: flex;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #f0c060;
+}
+
+.exchange-tabs button {
+  flex: 1;
+  background: #3a3128;
+  border: none;
+  padding: 8px;
+  color: #d0b080;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.exchange-tabs button.active {
+  background: #f0c060;
+  color: #2a241c;
+}
+
+.exchange-content {
+  display: none;
+}
+
+.exchange-content.active {
+  display: block;
+}
+
+/* Стили для модальных окон */
+#offer-modal, #create-account-modal {
+  border-radius: 5px;
+}
+
+#offer-modal .bank-form-group,
+#create-account-modal .bank-form-group {
+  margin-bottom: 15px;
+}
+
+#offer-modal .bank-form-label,
+#create-account-modal .bank-form-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #d0b080;
+}
+
+#offer-modal .bank-form-input,
+#create-account-modal .bank-form-input {
+  width: 100%;
+  padding: 8px;
+  background: #3a3128;
+  border: 1px solid #f0c060;
+  color: #d0b080;
+  border-radius: 3px;
+}
+
+#new-account-number {
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+</style>
+</body></html>

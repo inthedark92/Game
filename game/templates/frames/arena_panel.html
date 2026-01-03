@@ -1,0 +1,83 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/arena_panel.css' %}">    
+</head>
+<body>
+
+    <div class="arena-tabs">
+        <div class="arena-tab active" onclick="showArenaTab('onevsone')">1 на 1</div>
+        <div class="arena-tab" onclick="showArenaTab('arena-group')">Групповые</div>
+        <div class="arena-tab" onclick="showArenaTab('chaotic')">Хаотичные</div>
+        <div class="arena-tab" onclick="showArenaTab('arena-clan')">Клановые</div>
+        <div class="arena-tab" onclick="showArenaTab('finished')">Завершённые</div>
+    </div>
+
+    <div class="arena-tab-content active" id="onevsone">
+        <h3>Заявки на бой 1 на 1</h3>
+        <button class="create-button" onclick="createRequest('1x1')">+ Создать заявку</button>
+        <div class="battle-request">
+            <p><strong>Игрок X</strong> вызывает на бой 1 на 1</p>
+            <button onclick="acceptChallenge(1)">Принять вызов</button>
+        </div>
+    </div>
+
+    <div class="arena-tab-content" id="arena-group">
+        <h3>Групповые бои</h3>
+        <button class="create-button" onclick="createRequest('Arena-Group')">+ Создать заявку</button>
+        <div class="battle-request">
+            <p><strong>Команда A</strong> против <strong>Команды B</strong></p>
+            <button onclick="acceptChallenge(2)">Принять вызов</button>
+        </div>
+    </div>
+
+    <div class="arena-tab-content" id="chaotic">
+        <h3>Хаотичные бои</h3>
+        <button class="create-button" onclick="createRequest('Chaotic')">+ Создать заявку</button>
+        <div class="battle-request">
+            <p>Хаотичный бой на 6 участников</p>
+            <button onclick="acceptChallenge(3)">Вступить</button>
+        </div>
+    </div>
+
+    <div class="arena-tab-content" id="arena-clan">
+        <h3>Клановые бои</h3>
+        <button class="create-button" onclick="createRequest('Клановый')">+ Создать заявку</button>
+        <div class="battle-request">
+            <p><strong>Клан "Легенды"</strong> вызывает на клановый бой</p>
+            <button onclick="acceptChallenge(4)">Принять вызов</button>
+        </div>
+    </div>
+
+    <div class="arena-tab-content" id="finished">
+        <h3>Завершённые бои</h3>
+        <div class="battle-request">
+            <p>Бой между Игрок X и Игрок Y завершился победой Игрок X</p>
+        </div>
+        <div class="battle-request">
+            <p>Бой между Клан A и Клан B завершился ничьей</p>
+        </div>
+    </div>
+
+    <script>
+        function showArenaTab(tabId) {
+            const tabs = document.querySelectorAll('.arena-tab');
+            const contents = document.querySelectorAll('.arena-tab-content');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`.arena-tab[onclick*="${tabId}"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function createRequest(type) {
+            alert(`Создана новая заявка на бой типа: ${type}`);
+        }
+
+        function acceptChallenge(id) {
+            alert(`Вы приняли вызов №${id}`);
+        }
+    </script>
+
+</body>
+</html>

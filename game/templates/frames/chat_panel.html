@@ -1,0 +1,164 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/chat_panel.css' %}">
+<script src="{% static 'js/chat_panel.js' %}"></script>
+<script>
+// Добавьте этот код в <head> или перед закрывающим </body>
+async function logout() {
+    try {
+        const response = await fetch("{% url 'logout' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        });
+        if (response.ok) {
+            window.location.href = "{% url 'login' %}"; // Перенаправление на страницу входа
+        } else {
+            console.error("Ошибка выхода:", response.status);
+        }
+    } catch (error) {
+        console.error("Ошибка сети:", error);
+    }
+}
+</script>
+</head>
+<body>
+    <!-- Основной контейнер чата -->
+    <div class="chat-main-container">
+        <!-- Основное содержимое чата и вкладки -->
+        <div class="chat-content-container">
+            <!-- Верхняя панель с вкладками -->
+            <div class="chat-tabs-container">
+                <!-- Основные вкладки -->
+                <div class="tabs-wrapper">
+                    <div class="chat-tab active" data-tab="world">Мир</div>
+                    <div class="chat-tab" data-tab="location">Локация</div>
+                    <div class="chat-tab" data-tab="private">Приват</div>
+                    <div class="chat-tab" data-tab="trade">Торг</div>
+                    <div class="chat-tab" data-tab="groupchat">Группа</div>
+                    <div class="chat-tab" data-tab="group" style="width:100px;">Подземный мир</div>
+                    <div class="chat-tab" data-tab="clan">Клан</div>
+                    <div class="chat-tab" data-tab="alliance">Альянс</div>
+                    <div id="real-time-info" class="real-time-info">
+                        00:00 🌞 День | 01.01.2024
+                    </div>
+                </div>
+ 
+                <!-- Кнопка системных сообщений -->
+                <div id="system-toggle" class="system-toggle">
+                    Системные ▼
+                </div>
+            </div>
+
+            <!-- Основное содержимое чата -->
+            <div id="chat-content" class="chat-content">
+                <!-- Фон чата с закругленными углами -->
+                <div class="chat-background">
+                
+                    <!-- Контент чата -->
+                    <div class="chat-messages">
+                        <div data-tab="world"></div>
+                        <div data-tab="location" style="display:none;"></div>
+                        <div data-tab="private" style="display:none;"></div>
+                        <div data-tab="trade" style="display:none;"></div>
+                        <div data-tab="groupchat" style="display:none;"></div>
+                        <div data-tab="group" style="display:none;"></div>
+                        <div data-tab="clan" style="display:none;"></div>
+                        <div data-tab="alliance" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Системная панель -->
+        <div id="system-panel" class="system-panel">
+            <div style="padding:1px 5px;">
+                <p>[12:05] Система: Сервер будет перезагружен через 10 минут</p>
+                <p>[12:06] Система: Игрок5 победил босса</p>
+                <p>[12:07] Система: Началось событие "Осада крепости"</p>
+                <p>[12:08] Система: Вы получили достижение "Исследователь"</p>
+            </div>
+        </div>
+
+        <!-- Групповая панель -->
+        <div id="group-panel" class="group-panel">
+            <div style="padding:10px;">
+                <button id="create-group-btn" style="width:100%;padding:5px;">Создать группу</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Нижняя панель -->
+    <div class="bottom-container">
+        <div class="chat-button" id="clear-button" data-tooltip="Очистить">❌</div>
+        <textarea class="chat-input" placeholder="Введите сообщение..."></textarea>
+        <div class="chat-button" id="send-button" data-tooltip="Отправить">✉️</div>
+        
+        <div class="action-button" data-tooltip="Друзья">👥</div>
+        <div class="action-button" id="trade-button" data-tooltip="Сделки">🤝</div>
+        <div class="action-button" data-tooltip="Заявка модерам">🛡️</div>
+        <div class="action-button" data-tooltip="Донат магазин">💎</div>
+        <div class="action-button" id="clan-button" data-tooltip="Клан">🏰</div>
+        <div class="action-button" id="admin-button" data-tooltip="Панель админа">👑</div>
+        <div class="action-button" onclick="logout()" data-tooltip="Выход">🚪</div>
+    </div>
+
+    <!-- Модальное окно авторизации админа -->
+    <div id="admin-login-modal" class="modal admin-login-modal">
+        <h3>Авторизация администратора</h3>
+        
+        <div style="margin-bottom:10px;">
+            <label>Логин:</label>
+            <input type="text" id="admin-login">
+        </div>
+        
+        <div style="margin-bottom:15px;">
+            <label>Пароль:</label>
+            <input type="password" id="admin-password">
+        </div>
+        
+        <div class="modal-buttons">
+            <button id="admin-login-submit">Войти</button>
+            <button id="admin-login-cancel">Отмена</button>
+        </div>
+        
+        <div id="admin-login-error" class="error-message">
+            Неверный логин или пароль!
+        </div>
+    </div>
+
+    <!-- Модальное окно создания группы -->
+    <div id="group-modal" class="modal group-modal">
+        <h3>Создание группы</h3>
+
+        <label>Сложность:</label>
+        <select id="group-difficulty">
+            <option value="1">1 уровень(3 этажа)</option>
+            <option value="2">2 уровень(5 этажей)</option>
+            <option value="3">3 уровень(7 этажей)</option>
+        </select>
+
+        <label>Сила монстров:</label>
+        <select id="monster-strength">
+            <option value="75">75%</option>
+            <option value="100" selected>100%</option>
+            <option value="125">125%</option>
+        </select>
+
+        <label>Количество Игроков:</label>
+        <select id="player-count">
+            <!-- Заполняется автоматически -->
+        </select>
+
+        <label>Пароль (4 цифры):</label>
+        <input type="text" id="group-password" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="Введите 4 цифры">
+
+        <div class="modal-buttons">
+            <button id="confirm-create-group">Создать</button>
+            <button id="cancel-create-group">Отмена</button>
+        </div>
+    </div>
+
+</body>

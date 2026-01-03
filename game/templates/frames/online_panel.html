@@ -1,0 +1,174 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/online_panel.css' %}">    
+</head>
+<body>
+    <div class="online-container">
+        <div class="online-tabs">
+            <div class="online-tab active" data-tab="location">Локация</div>
+            <div class="online-tab" data-tab="clan">Клан</div>
+            <div class="online-tab" data-tab="alliance">Альянс</div>
+            <div class="online-tab" data-tab="friends">Друзья</div>
+            <div class="online-tab" data-tab="mods">Модеры</div>
+        </div>
+        
+        <div class="tab-content">            
+            <div class="tab-pane active" id="location">
+                <ul class="online-list" id="location-online-list">
+                    <li>Загрузка...</li>
+                </ul>
+            </div>
+            
+            <div class="tab-pane" id="clan">
+                <ul class="online-list" id="clan-online-list">
+                    <li>Загрузка...</li>
+                </ul>
+            </div>
+            
+            <div class="tab-pane" id="alliance">
+                <ul class="online-list" id="alliance-online-list">
+                    <li>Загрузка...</li>
+                </ul>
+            </div>
+            
+            <div class="tab-pane" id="friends">
+                <ul class="online-list" id="friends-online-list">
+                    <li>Загрузка...</li>
+                </ul>
+            </div>
+            
+            <div class="tab-pane" id="mods">
+                <ul class="online-list" id="mods-online-list">
+                    <li>Загрузка...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Скрипт online_panel начал выполнение');
+        
+        // Простая функция для отладки
+        function debugLog(message) {
+            console.log('[OnlinePanel]', message);
+        }
+
+        // Основная функция загрузки игроков
+        function loadOnlinePlayers(tab) {
+            debugLog(`Начало загрузки для вкладки: ${tab}`);
+            
+            const list = document.getElementById(`${tab}-online-list`);
+            if (!list) {
+                debugLog(`Ошибка: список ${tab}-online-list не найден`);
+                return;
+            }
+
+            // Показываем индикатор загрузки
+            list.innerHTML = '<li>Загрузка данных...</li>';
+
+            // Создаем промис для fetch запроса
+            fetch(`/api/online_players/?tab=${tab}`)
+                .then(response => {
+                    debugLog(`Получен ответ: ${response.status}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    debugLog(`Данные получены: ${data.players.length} игроков`);
+                    
+                    // Очищаем список
+                    list.innerHTML = '';
+                    
+                    if (data.players.length === 0) {
+                        list.innerHTML = '<li>Никого нет онлайн</li>';
+                    } else {
+                        data.players.forEach(player => {
+                            const li = document.createElement('li');
+                            if (player.is_me) {
+                                li.innerHTML = `<strong style="color: #000000;">${player.name} (Вы)</strong>`;
+                            } else {
+                                li.textContent = `${player.name} [Ур. ${player.level}]`;
+                            }
+                            list.appendChild(li);
+                        });
+                    }
+                })
+                .catch(error => {
+                    debugLog(`Ошибка загрузки: ${error.message}`);
+                    list.innerHTML = '<li>Ошибка загрузки данных</li>';
+                    
+                    // Для отладки: показываем тестовые данные при ошибке
+                    showTestData(list);
+                });
+        }
+
+        // Функция для показа тестовых данных (для отладки)
+        function showTestData(list) {
+            debugLog('Показываем тестовые данные');
+            const testPlayers = [
+                {name: "ТестовыйИгрок1", level: 5, is_me: false},
+                {name: "ТестовыйИгрок2", level: 3, is_me: false},
+                {name: "Вы", level: 1, is_me: true}
+            ];
+            
+            list.innerHTML = '';
+            testPlayers.forEach(player => {
+                const li = document.createElement('li');
+                if (player.is_me) {
+                    li.innerHTML = `<strong style="color: #000000;">${player.name} (Вы)</strong>`;
+                } else {
+                    li.textContent = `${player.name} [Ур. ${player.level}]`;
+                }
+                list.appendChild(li);
+            });
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('DOM загружен, инициализируем панель онлайн');
+            
+            // Текущая активная вкладка
+            let currentTab = 'location';
+            
+            // Загружаем данные для активной вкладки
+            loadOnlinePlayers(currentTab);
+            
+            // Обработчики кликов по вкладкам
+            const tabs = document.querySelectorAll('.online-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    debugLog(`Клик по вкладке: ${this.getAttribute('data-tab')}`);
+                    
+                    // Убираем активный класс у всех вкладок
+                    tabs.forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane').forEach(pane => {
+                        pane.classList.remove('active');
+                    });
+                    
+                    // Добавляем активный класс текущей вкладке
+                    this.classList.add('active');
+                    const tabName = this.getAttribute('data-tab');
+                    const tabPane = document.getElementById(tabName);
+                    if (tabPane) {
+                        tabPane.classList.add('active');
+                    }
+                    
+                    // Обновляем данные для новой вкладки
+                    currentTab = tabName;
+                    loadOnlinePlayers(currentTab);
+                });
+            });
+            
+            debugLog('Инициализация завершена');
+        });
+
+        // Обработка ошибок
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+        });
+        
+        console.log('Скрипт online_panel загружен');
+    </script>
+</body>

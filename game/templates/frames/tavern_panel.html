@@ -1,0 +1,327 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/tavern_panel.css' %}">    
+</head>
+<body class="tavern-body">
+    <div class="tavern-container">
+        <!-- Колонка корзины слева -->
+        <div class="tavern-cart-column">
+            <div class="tavern-cart-header">Ваш заказ</div>
+            <div class="tavern-cart-items" id="tavern-cart-items">
+                <div class="tavern-empty-cart">Корзина пуста</div>
+            </div>
+            <div class="tavern-cart-total" id="tavern-cart-total">Итого: 0 золота</div>
+            <div class="tavern-cart-controls">
+                <button class="tavern-cart-button tavern-checkout-button" id="tavern-checkout-button">Оплатить</button>
+                <button class="tavern-cart-button tavern-cancel-button" id="tavern-cancel-button">Отменить</button>
+            </div>
+        </div>
+        
+        <!-- Центральная колонка с блюдами -->
+        <div class="tavern-items-column" id="tavern-items-display">
+            <div class="tavern-column-header">
+                <span>Выберите категорию</span>
+            </div>
+        </div>
+        
+        <!-- Колонка фильтров справа -->
+        <div class="tavern-filter-column">
+            <div class="tavern-filter-category">
+                <div class="tavern-filter-category-header">Основные блюда</div>
+                <div class="tavern-filter-item active" data-category="first-course">Первые блюда</div>
+                <div class="tavern-filter-item" data-category="second-course">Вторые блюда</div>
+            </div>
+            
+            <div class="tavern-filter-category">
+                <div class="tavern-filter-category-header">Дополнительно</div>
+                <div class="tavern-filter-item" data-category="salads">Салаты</div>
+                <div class="tavern-filter-item" data-category="drinks">Напитки</div>
+                <div class="tavern-filter-item" data-category="desserts">Десерты</div>
+            </div>
+            
+            <div class="tavern-filter-category">
+                <div class="tavern-filter-category-header">Прочее</div>
+                <div class="tavern-filter-item" data-category="other">Разное</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Корзина
+        let tavernCart = [];
+        let tavernCurrentCategory = "first-course";
+        let tavernMenuData = {};
+
+        // Загрузка данных меню
+        function loadTavernMenu() {
+            fetch('/tavern/menu/')
+                .then(response => response.json())
+                .then(data => {
+                    tavernMenuData = data;
+                    tavernLoadCategory(tavernCurrentCategory);
+                })
+                .catch(error => {
+                    console.error('Error loading tavern menu:', error);
+                });
+        }
+
+        // Инициализация при загрузке страницы
+        window.onload = function() {
+            loadTavernMenu();
+            
+            // Назначаем обработчики для фильтров
+            document.querySelectorAll('.tavern-filter-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.tavern-filter-item').forEach(i => {
+                        i.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    const category = this.getAttribute('data-category');
+                    tavernCurrentCategory = category;
+                    tavernLoadCategory(category);
+                });
+            });
+            
+            // Назначаем обработчики для кнопок корзины
+            document.getElementById('tavern-checkout-button').addEventListener('click', tavernCheckout);
+            document.getElementById('tavern-cancel-button').addEventListener('click', tavernClearCart);
+        };
+
+        // Загрузка категории
+        function tavernLoadCategory(category) {
+            const itemsContainer = document.getElementById('tavern-items-display');
+            
+            itemsContainer.innerHTML = `
+                <div class="tavern-column-header">
+                    <span>${tavernGetCategoryName(category)}</span>
+                </div>
+            `;
+            
+            const dishes = tavernMenuData[category] || [];
+            
+            if (dishes.length === 0) {
+                itemsContainer.innerHTML += `
+                    <div class="tavern-item">
+                        Нет блюд в этой категории
+                    </div>
+                `;
+                return;
+            }
+            
+            dishes.forEach(dish => {
+                const dishElement = document.createElement('div');
+                dishElement.className = 'tavern-item';
+                dishElement.innerHTML = `
+                    <div class="tavern-item-header">
+                        <div class="tavern-item-name">${dish.name}</div>
+                        <div class="tavern-item-stock">В наличии: ${dish.stock}</div>
+                    </div>
+                    <div class="tavern-item-sections-container">
+                        <div class="tavern-item-section tavern-item-icon-section">
+                            <div class="tavern-item-icon">
+                                <img src="${dish.image}" alt="${dish.name}">
+                            </div>
+                            <div class="tavern-item-price">${dish.price} золота</div>
+                        </div>
+                        <div class="tavern-item-section tavern-item-details-section">
+                            <div class="tavern-section-title">Эффекты:</div>
+                            <div class="tavern-item-details">
+                                HP: +${dish.hp_restore}<br>
+                                MP: +${dish.mp_restore}
+                            </div>
+                        </div>
+                        <div class="tavern-item-section tavern-item-controls-section">
+                            <div class="tavern-quantity-selector">
+                                <input type="number" class="tavern-quantity-input" value="1" min="1" max="${dish.max_per_purchase}">
+                                <button class="tavern-buy-button">Купить</button>
+                            </div>
+                            <button class="tavern-add-to-cart-button">В корзину</button>
+                        </div>
+                    </div>
+                `;
+                
+                dishElement.querySelector('.tavern-buy-button').addEventListener('click', () => {
+                    const quantity = parseInt(dishElement.querySelector('.tavern-quantity-input').value);
+                    tavernBuyDish(dish, quantity);
+                });
+                
+                dishElement.querySelector('.tavern-add-to-cart-button').addEventListener('click', () => {
+                    const quantity = parseInt(dishElement.querySelector('.tavern-quantity-input').value);
+                    tavernAddToCart(dish, quantity);
+                });
+                
+                itemsContainer.appendChild(dishElement);
+            });
+        }
+
+        // Получение названия категории
+        function tavernGetCategoryName(category) {
+            const names = {
+                "first-course": "Первые блюда",
+                "second-course": "Вторые блюда",
+                "salads": "Салаты",
+                "drinks": "Напитки",
+                "desserts": "Десерты",
+                "other": "Разное"
+            };
+            return names[category] || category;
+        }
+
+        // Покупка блюда
+        function tavernBuyDish(dish, quantity) {
+            if (quantity < 1 || quantity > dish.max_per_purchase) {
+                alert(`Количество должно быть от 1 до ${dish.max_per_purchase}`);
+                return;
+            }
+            
+            fetch('/tavern/purchase/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({
+                    item_id: dish.id,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // Можно обновить UI с новыми значениями золота, HP, MP
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при покупке');
+            });
+        }
+
+        // Добавление в корзину
+        function tavernAddToCart(dish, quantity) {
+            if (quantity < 1 || quantity > dish.max_per_purchase) {
+                alert(`Количество должно быть от 1 до ${dish.max_per_purchase}`);
+                return;
+            }
+            
+            const existingItem = tavernCart.find(item => item.id === dish.id);
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                tavernCart.push({
+                    ...dish,
+                    quantity: quantity
+                });
+            }
+            
+            tavernUpdateCartDisplay();
+        }
+
+        // Обновление отображения корзины
+        function tavernUpdateCartDisplay() {
+            const cartItemsContainer = document.getElementById('tavern-cart-items');
+            const cartTotalElement = document.getElementById('tavern-cart-total');
+            
+            cartItemsContainer.innerHTML = '';
+            
+            if (tavernCart.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="tavern-empty-cart">Корзина пуста</div>';
+                cartTotalElement.textContent = 'Итого: 0 золота';
+                return;
+            }
+            
+            let total = 0;
+            tavernCart.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'tavern-cart-item';
+                itemElement.innerHTML = `
+                    <div class="tavern-cart-item-name">${item.name}</div>
+                    <div class="tavern-cart-item-quantity">x${item.quantity}</div>
+                    <div>${item.price * item.quantity} золота</div>
+                    <div class="tavern-cart-item-remove">×</div>
+                `;
+                cartItemsContainer.appendChild(itemElement);
+                total += item.price * item.quantity;
+                
+                itemElement.querySelector('.tavern-cart-item-remove').addEventListener('click', () => {
+                    tavernCart = tavernCart.filter(i => i.id !== item.id);
+                    tavernUpdateCartDisplay();
+                });
+            });
+            
+            cartTotalElement.textContent = `Итого: ${total} золота`;
+        }
+
+        // Оформление заказа
+        function tavernCheckout() {
+            if (tavernCart.length === 0) {
+                alert('Корзина пуста!');
+                return;
+            }
+            
+            const total = tavernCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            fetch('/tavern/purchase/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({
+                    items: tavernCart.map(item => ({
+                        item_id: item.id,
+                        quantity: item.quantity
+                    }))
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Заказ оформлен на сумму ${total} золота!`);
+                    tavernClearCart();
+                    // Можно обновить UI с новыми значениями золота, HP, MP
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при оформлении заказа');
+            });
+        }
+
+        // Очистка корзины
+        function tavernClearCart() {
+            if (tavernCart.length === 0) {
+                alert('Корзина уже пуста!');
+                return;
+            }
+            
+            if (confirm('Вы уверены, что хотите очистить корзину?')) {
+                tavernCart = [];
+                tavernUpdateCartDisplay();
+            }
+        }
+
+        // Функция для получения CSRF токена
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

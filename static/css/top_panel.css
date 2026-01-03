@@ -1,0 +1,89 @@
+.top-panel {
+    grid-row: 2;
+    background: url('/static/img/main.png') no-repeat center center;
+    background-size: 100% 100%;
+    background-position: center;
+    margin: 0;
+    padding: 0;
+    height: 30px;
+    line-height: 30px;
+        position: relative;
+z-index: 100;
+}
+
+.panel-container {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-between;
+    color: #000000;
+    font-size: 12px;
+    height: 30px;
+    width: 100vw;
+    align-items: center;
+    border: 2px solid transparent;
+position: relative;
+    z-index: 100;
+    background: url('/static/img/top1.png') no-repeat center center;
+    background-size: cover;
+}
+
+.panel-section {
+    display: flex;
+    justify-content: space-between;
+    overflow: hidden;
+    align-items: center;
+}
+
+.left-section, .center-section, .right-section {
+    max-width: 33%;
+    overflow: hidden;
+}
+
+.panel-section {
+    margin-left: 10px;
+    flex: 1;
+    font-weight: bold;
+    min-width: 0;
+    gap: 6px;
+    display: flex;
+    align-items: center;
+}
+
+.left-section { 
+    justify-content: flex-start; 
+}
+
+.center-section { 
+    justify-content: center; 
+}
+
+.right-section { 
+    justify-content: flex-end; 
+}
+
+.nav-links {
+    display: flex;
+    gap: 10px;
+    margin-right: 10px;
+}
+
+.nav-links a {
+    color: #090000;
+    text-decoration: none;
+    white-space: nowrap;
+    text-align: center;
+    display: inline-block;
+    min-width: 40px;
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+}
+
+.player-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #300202;
+    text-align: center;
+}

@@ -1,0 +1,298 @@
+/* Основные стили для панели клана */
+.clan-container {
+    display: flex;
+    height: 100vh;
+    padding: 5px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100vw;
+}
+
+.clan-right-section {
+    padding: 20px;
+    width: 50%;
+    border-right: 2px solid #555;
+}
+
+.clan-left-section {
+    padding: 20px;
+    width: 50%;
+    border-right: 2px solid #555;
+}
+
+.clan-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.clan-header img {
+    width: 64px;
+    height: 64px;
+}
+
+.clan-name {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.clan-members-count {
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #d4af37;
+}
+
+.member-list {
+    margin-top: 10px;
+    overflow-y: auto;
+    border-top: 1px solid #555;
+    padding-top: 10px;
+    max-height: 60vh;
+}
+
+.member-item {
+    padding: 8px 0;
+    border-bottom: 1px dashed #777;
+}
+
+.clan-actions {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.clan-actions button {
+    background-color: #a88652;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.clan-info {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.clan-description {
+    flex: 1;
+}
+
+.clan-symbol {
+    width: 50px;
+    height: 50px;
+    margin-left: 20px;
+}
+
+.clan-legend {
+    border-top: 1px solid #555;
+    padding-top: 10px;
+    font-style: italic;
+}
+
+/* Стили для панели склада */
+.storage-container {
+    display: none;
+    width: 100%;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.storage-main {
+    display: flex;
+    height: calc(100% - 40px);
+}
+
+.storage-left-panel {
+    width: 70%;
+    padding: 15px;
+    border-right: 2px solid #555;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.storage-right-section {
+    width: 30%;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.storage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.storage-categories {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.storage-categories button {
+    background-color: #3a3a3a;
+    color: #e9d6b5;
+    border: 1px solid #555;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+
+.storage-categories button.active {
+    background-color: #a88652;
+    color: #fff;
+}
+
+.storage-search {
+    margin-bottom: 20px;
+}
+
+.storage-search input {
+    width: 100%;
+    padding: 8px;
+    background-color: #2a2a2a;
+    border: 1px solid #555;
+    color: #e9d6b5;
+    border-radius: 3px;
+}
+
+.storage-slots-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.storage-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.clan-slot {
+    aspect-ratio: 1;
+    background-color: #2a2a2a;
+    border: 1px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.clan-slot:hover {
+    border-color: #a88652;
+}
+
+.storage-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.page-btn {
+    padding: 5px 10px;
+    background: rgba(139, 94, 60, 0.3);
+    border: 1px solid #8b5e3c;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.page-btn.active {
+    background: rgba(139, 94, 60, 0.7);
+    font-weight: bold;
+}
+
+/* Стили для истории */
+.history-container {
+    margin-top: 20px;
+}
+
+.history-header {
+    font-weight: bold;
+    border-bottom: 1px solid #555;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr;
+    gap: 10px;
+}
+
+.history-item {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed #555;
+    font-size: 14px;
+}
+
+.history-item div {
+    word-break: break-word;
+}
+
+.modifier {
+    color: #d4af37;
+    font-size: 12px;
+}
+
+.back-button {
+    background-color: #3a3a3a;
+    color: #e9d6b5;
+    border: 1px solid #555;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 3px;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.back-button:hover {
+    background-color: #4a4a4a;
+}
+
+
+.clan-frame {
+    display: none;
+    position: fixed;
+    top: 30px;
+    left: 0;
+    right: 0;
+    bottom: 25%;
+    z-index: 151;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #8b5e3c;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+}
+
+.clan-frame-conten {
+    height: calc(100% - 40px);
+    overflow: auto;
+    padding: 20px;
+    color: #e9d6b5;
+}
+
+.close-clan-frame {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #8b5e3c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 1001;
+}

@@ -1,0 +1,68 @@
+.online-container {
+    background: url('/static/img/chat3.png') no-repeat center center;
+    background-size: 100% 100%;
+    color: #000000;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.online-tabs {
+    display: flex;
+    border-bottom: 1px solid #333;
+}
+
+.online-tab {
+    padding: 5px 8px;
+    cursor: pointer;
+    border-right: 1px solid #333;
+    font-size: 12px;
+    flex: 1;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.online-tab:last-child {
+    border-right: none;
+}
+
+.online-tab.active {
+    background:url('/static/img/chat2.png') no-repeat center center;
+    background-size:100% 100%;
+    border:1px solid black;
+    color:#1c1c1c;
+    font-weight:bold;
+    border-radius:8px;
+}
+
+.online-tab:hover {
+    background:url('/static/img/chat.png') no-repeat center center;
+    border-radius:8px;
+    border:1px solid black;
+    color:#1c1c1c;
+}
+
+.tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 5px;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    padding: 3px 0;
+    border-bottom: 1px dotted #333;
+}

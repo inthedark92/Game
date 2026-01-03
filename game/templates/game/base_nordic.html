@@ -1,0 +1,31 @@
+<!-- game/base_nordic.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    {% load static %}
+    <meta charset="UTF-8" />
+    <title>{% block title %}Combats Clone{% endblock %}</title>
+    
+    <style>
+    /* Абсолютный сброс стилей */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+    }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

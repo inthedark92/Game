@@ -1,0 +1,140 @@
+/* Основной контейнер, который занимает всю выделенную область */
+.main-panel {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 450px; /* Оставляем место для location-panel */
+    bottom: 25%;
+    overflow: hidden;
+}
+
+.main-content {
+    background:url('/static/img/main.png') no-repeat center center;
+    background-size:100% 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#move-indicator {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1000;
+    display: none;
+    width: 200px;
+    height: 5px;
+}
+
+#move-progress {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+#move-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, #f3c068, #ef9f61);
+    transition: width 1s linear;
+}
+
+#cancel-move-btn {
+    position: absolute;
+    top: -2px;
+    right: -17px;
+    cursor: pointer;
+    color: #ff6b6b;
+    background: rgba(0, 0, 0, 0.8);
+    border: none;
+    border-radius: 60%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+/* Остальные стили остаются без изменений */
+.location-info-container {
+    position: absolute; /* нужно для работы top/left */
+    top: 45px;
+    left: 50%;
+    transform: translateX(-50%); /* центр по горизонтали */
+    
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+
+    max-width: 1700px;
+    width: 95%; /* или фикс ширину, напр. 1200px */
+    height: 85%;
+    
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    padding: 5px;
+    box-sizing: border-box;
+    z-index: 10;
+}
+
+
+.location-text-info {
+    flex: 1;
+    border-radius: 5px;
+    margin-top: 20px;
+    padding: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#location-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #e9d6b5;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid #e9d6b5;
+    border-radius: 4px;
+    padding: 8px 12px;
+    text-align: center;
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+}
+
+#location-description {
+    line-height: 1.4;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.location-image {
+    flex: 3;
+    background: rgba(0,0,0,0.7);
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#location-image {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+}

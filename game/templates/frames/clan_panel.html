@@ -1,0 +1,217 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/clan_panel.css' %}">    
+</head>
+<body>
+    <div class="clan-container" id="main-clan-panel">
+        <!-- Левая секция -->
+        <div class="clan-left-section">
+            <div class="clan-header">
+                <img src="{% static 'img/clan_logo.png' %}" alt="Клан значок">
+                <div class="clan-name">Название Клана</div>
+            </div>
+
+            <div class="clan-members-count">
+                <strong>Игроков:</strong> 8 / 20
+            </div>
+
+            <div class="member-list">
+                <div class="member-item">Участник 1</div>
+                <div class="member-item">Участник 2</div>
+                <div class="member-item">Участник 3</div>
+                <div class="member-item">Участник 4</div>
+                <div class="member-item">Участник 5</div>
+            </div>
+        </div>
+
+        <!-- Правая секция -->
+        <div class="clan-right-section">
+            <div class="clan-actions">
+                <button id="storage-button">Клановый склад</button>
+            </div>
+
+            <div class="clan-info">
+                <div class="clan-description">
+                    <p><strong>Описание:</strong> Здесь находится описание клана, его цели, история и правила.</p>
+                </div>
+                <img src="{% static 'img/alliance_emblem.png' %}" alt="Эмблема альянса" class="clan-symbol">
+            </div>
+
+            <div class="clan-legend">
+                <strong>Легенда клана:</strong><br>
+                Этот клан был основан древними воинами и ведёт свою историю с великих войн за мир.
+            </div>
+        </div>
+    </div>
+
+    <!-- Панель кланового склада (обновленная) -->
+    <div class="storage-container" id="storage-panel">
+        <div class="storage-main">
+            <!-- Левая панель (слоты) -->
+            <div class="storage-left-panel">
+                <div class="storage-header">
+                    <h3>Клановый склад</h3>
+                    <!-- Кнопка "Назад" перемещена в правый верхний угол -->
+                    <button class="back-button" id="back-button">Назад</button>
+                </div>
+                
+                <div class="storage-categories">
+                    <button class="active">Все</button>
+                    <button>Оружие</button>
+                    <button>Броня</button>
+                    <button>Ресурсы</button>
+                    <button>Прочее</button>
+                </div>
+                <div class="storage-search">
+                    <input type="text" placeholder="Поиск...">
+                </div>
+                
+                <div class="storage-slots-container">
+                    <!-- Пагинация -->
+                    <div class="storage-pagination">
+                        <div class="page-btn active" data-page="1">Страница 1</div>
+                        <div class="page-btn" data-page="2">Страница 2</div>
+                    </div>
+                    
+                    <!-- Страница 1 слотов (6x4) -->
+                    <div class="storage-slots-grid" id="page1">
+                        {% for i in "x"|rjust:"24" %}
+                        <div class="clan-slot" data-slot="{{ forloop.counter }}"></div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Страница 2 слотов (6x4) -->
+                    <div class="storage-slots-grid" id="page2" style="display:none;">
+                        {% for i in "x"|rjust:"24" %}
+                        <div class="clan-slot" data-slot="{{ forloop.counter|add:'24' }}"></div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая секция с историей -->
+            <div class="storage-right-section">
+                <h4>История заимствований</h4>
+                <div class="history-container">
+                    <div class="history-header">
+                        <div>Игрок</div>
+                        <div>Предмет</div>
+                        <div>Вернется</div> <!-- Изменено с "Вернуть до" на "Вернется" -->
+                    </div>
+                    
+                    <div class="history-list">
+                        <!-- Примеры истории -->
+                        <div class="history-item">
+                            <div>Варлок</div>
+                            <div>
+                                Доспех Легиона
+                                <div class="modifier">[Защита +15, Мана +50]</div>
+                            </div>
+                            <div>20.07.2025 18:00</div>
+                        </div>
+                        
+                        <div class="history-item">
+                            <div>Архимаг</div>
+                            <div>
+                                Посох Вечной Зимы
+                                <div class="modifier">[Урон холода +30%]</div>
+                            </div>
+                            <div>19.07.2025 14:30</div>
+                        </div>
+                        
+                        <div class="history-item">
+                            <div>Тень</div>
+                            <div>Кольцо Невидимости</div>
+                            <div>18.07.2025 22:15</div>
+                        </div>
+                        
+                        <div class="history-item">
+                            <div>Берсерк</div>
+                            <div>
+                                Топор Разрушителя
+                                <div class="modifier">[Крит. удар +25%]</div>
+                            </div>
+                            <div>17.07.2025 10:45</div>
+                        </div>
+                        
+                        <div class="history-item">
+                            <div>Целитель</div>
+                            <div>Набор лечебных зелий (x10)</div>
+                            <div>16.07.2025 16:20</div>
+                        </div>
+                        
+                        <div class="history-item">
+                            <div>Стрелок</div>
+                            <div>
+                                Арбалет Снайпера
+                                <div class="modifier">[Точность +20%]</div>
+                            </div>
+                            <div>15.07.2025 09:30</div>
+                        </div>
+                        
+                        <div class="history-item">
+                            <div>Рыцарь</div>
+                            <div>
+                                Щит Паладина
+                                <div class="modifier">[Блок +40%, Здоровье +100]</div>
+                            </div>
+                            <div>14.07.2025 20:15</div>
+                        </div>
+                        
+                        <div class="history-item">
+                            <div>Маг Огня</div>
+                            <div>
+                                Сфера Пламени
+                                <div class="modifier">[Урон огня +35%]</div>
+                            </div>
+                            <div>13.07.2025 11:45</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Обработчик для кнопки "Клановый склад"
+    document.getElementById('storage-button').addEventListener('click', function() {
+        document.getElementById('main-clan-panel').style.display = 'none';
+        document.getElementById('storage-panel').style.display = 'block';
+    });
+
+    // Обработчик для кнопки "Назад"
+    document.getElementById('back-button').addEventListener('click', function() {
+        document.getElementById('storage-panel').style.display = 'none';
+        document.getElementById('main-clan-panel').style.display = 'flex';
+    });
+
+    // Переключение страниц склада
+    document.querySelectorAll('.page-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Снимаем активность со всех кнопок
+            document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+            
+            // Делаем текущую кнопку активной
+            this.classList.add('active');
+            
+            // Получаем номер страницы
+            const page = this.dataset.page;
+            
+            // Скрываем все страницы
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'none';
+            
+            // Показываем выбранную страницу
+            document.getElementById('page' + page).style.display = 'grid';
+        });
+    });
+
+    document.getElementById('clan-button').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.parent && typeof window.parent.toggleClanPanel === 'function') {
+            window.parent.toggleClanPanel();
+        }
+    });
+    </script>
+</body>
+</html>

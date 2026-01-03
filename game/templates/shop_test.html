@@ -1,0 +1,488 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/shop_panel.css' %}">    
+</head>
+
+<body class="shop-body">
+    <div class="shop-container">
+        <!-- Колонка корзины слева -->
+        <div class="shop-cart-column">
+            <div class="shop-cart-header">Ваш заказ</div>
+            <div class="shop-cart-items" id="shop-cart-items">
+                <div class="shop-empty-cart">Корзина пуста</div>
+            </div>
+            <div class="shop-cart-total" id="shop-cart-total">Итого: 0 золота</div>
+            <div class="shop-cart-controls">
+                <button class="shop-cart-button shop-checkout-button" id="shop-checkout-button">Оплатить</button>
+                <button class="shop-cart-button shop-cancel-button" id="shop-cancel-button">Отменить</button>
+            </div>
+        </div>
+        
+        <!-- Центральная колонка с товарами -->
+        <div class="shop-items-column" id="shop-items-container">
+            <div class="shop-column-header">
+                <span>Выберите категорию</span>
+                <div class="shop-level-filter">
+                    <span>Уровень:</span>
+                    <input type="number" class="shop-level-filter-input" id="shop-level-filter-input" min="0" placeholder="Все">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Колонка фильтров справа -->
+        <div class="shop-filter-column" id="type-filters">
+            <div class="shop-filter-category">
+                <div class="shop-filter-category-header">Оружие</div>
+                <div class="shop-filter-item" data-type="Меч">Меч</div>
+                <div class="shop-filter-item" data-type="Топор">Топоры</div>
+                <div class="shop-filter-item" data-type="dagger">Кинжалы</div>
+                <div class="shop-filter-item" data-type="Дубина">Дубины</div>
+                <div class="shop-filter-item" data-type="Посох">Посохи</div>
+            </div>
+            
+            <div class="shop-filter-category">
+                <div class="shop-filter-category-header">Броня</div>
+                <div class="shop-filter-item" data-type="Шлем">Шлем</div>
+                <div class="shop-filter-item" data-type="Нагрудник">Нагрудник</div>
+                <div class="shop-filter-item" data-type="Поножи">Поножи</div>
+                <div class="shop-filter-item" data-type="Рубашка">Рубашка</div>
+                <div class="shop-filter-item" data-type="Перчатки">Перчатки</div>
+                <div class="shop-filter-item" data-type="Наручи">Наручи</div>
+                <div class="shop-filter-item" data-type="Ботинки">Ботинки</div>
+                <div class="shop-filter-item" data-type="Пояс">Пояс</div>
+                <div class="shop-filter-item" data-type="Щит">Щит</div>
+            </div>
+            
+            <div class="shop-filter-category">
+                <div class="shop-filter-category-header">Украшения</div>
+                <div class="shop-filter-item" data-type="Ожерелье">Ожерелье</div>
+                <div class="shop-filter-item" data-type="Амулет">Амулет</div>
+                <div class="shop-filter-item" data-type="Серьга">Серьги</div>
+                <div class="shop-filter-item" data-type="Браслет">Браслеты</div>
+                <div class="shop-filter-item" data-type="Кольцо">Кольца</div>
+            </div>
+            
+            <div class="shop-filter-category">
+                <div class="shop-filter-category-header">Прочее</div>
+                <div class="shop-filter-item" data-type="Зелье">Зелья</div>
+                <div class="shop-filter-item" data-type="Эликсир">Эликсиры</div>
+                <div class="shop-filter-item" data-type="Подарок">Подарки</div>
+                <div class="shop-filter-item" data-type="Разное">Разное</div>
+            </div>
+            
+            <div class="shop-sell-section">
+                <button class="shop-sell-button">Продать предметы</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Передаем данные через JSON в script -->
+    {{ items_data|json_script:"items-data" }}
+
+    <script>
+        let shopCart = [];
+        let shopCurrentType = null;
+        let shopCurrentLevelFilter = null;
+        let allItems = [];
+
+        function currencyName(key) {
+            switch(key) {
+                case 'money': return 'монет';
+                case 'silver': return 'серебра';
+                case 'silver_dust': return 'серебряной пыли';
+                case 'gold': return 'золота';
+                case 'gold_dust': return 'золотой пыли';
+                default: return key;
+            }
+        }
+
+        function formatPrices(item) {
+            const parts = [];
+            if (item.price_money > 0) parts.push(`${item.price_money} монет`);
+            if (item.price_silver > 0) parts.push(`${item.price_silver} серебра`);
+            if (item.price_silver_dust > 0) parts.push(`${item.price_silver_dust} серебряной пыли`);
+            if (item.price_gold > 0) parts.push(`${item.price_gold} золота`);
+            if (item.price_gold_dust > 0) parts.push(`${item.price_gold_dust} золотой пыли`);
+            if (parts.length === 0) return 'Бесплатно';
+            return parts.join(', ');
+        }
+
+        function shopUpdateCart() {
+            const cartItemsContainer = document.getElementById('shop-cart-items');
+            const cartTotalElement = document.getElementById('shop-cart-total');
+            
+            cartItemsContainer.innerHTML = '';
+            
+            if (shopCart.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="shop-empty-cart">Корзина пуста</div>';
+                cartTotalElement.textContent = 'Итого: 0 золота';
+                return;
+            }
+            
+            const totals = {
+                money: 0,
+                silver: 0,
+                silver_dust: 0,
+                gold: 0,
+                gold_dust: 0
+            };
+            
+            shopCart.forEach((item) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'shop-cart-item';
+
+                // Формируем строку с ценой с учетом валют и количества
+                const priceParts = [];
+                if (item.price_money > 0) {
+                    priceParts.push(`${item.price_money * item.quantity} монет`);
+                    totals.money += item.price_money * item.quantity;
+                }
+                if (item.price_silver > 0) {
+                    priceParts.push(`${item.price_silver * item.quantity} серебра`);
+                    totals.silver += item.price_silver * item.quantity;
+                }
+                if (item.price_silver_dust > 0) {
+                    priceParts.push(`${item.price_silver_dust * item.quantity} серебряной пыли`);
+                    totals.silver_dust += item.price_silver_dust * item.quantity;
+                }
+                if (item.price_gold > 0) {
+                    priceParts.push(`${item.price_gold * item.quantity} золота`);
+                    totals.gold += item.price_gold * item.quantity;
+                }
+                if (item.price_gold_dust > 0) {
+                    priceParts.push(`${item.price_gold_dust * item.quantity} золотой пыли`);
+                    totals.gold_dust += item.price_gold_dust * item.quantity;
+                }
+
+                const priceStr = priceParts.join(', ');
+
+                itemElement.innerHTML = `
+                    <div class="shop-cart-item-name">${item.name}</div>
+                    <div class="shop-cart-item-quantity">x${item.quantity}</div>
+                    <div>${priceStr}</div>
+                `;
+                cartItemsContainer.appendChild(itemElement);
+            });
+            
+            // Отобразим общий итог в одной строке с перечислением валют
+            const totalParts = [];
+            if (totals.money > 0) totalParts.push(`${totals.money} монет`);
+            if (totals.silver > 0) totalParts.push(`${totals.silver} серебра`);
+            if (totals.silver_dust > 0) totalParts.push(`${totals.silver_dust} серебряной пыли`);
+            if (totals.gold > 0) totalParts.push(`${totals.gold} золота`);
+            if (totals.gold_dust > 0) totalParts.push(`${totals.gold_dust} золотой пыли`);
+            
+            cartTotalElement.textContent = `Итого: ${totalParts.length ? totalParts.join(', ') : '0 золота'}`;
+        }
+
+        function shopBuyItem(item, quantity) {
+            // Считаем сумму по всем валютам
+            const priceDetails = [];
+            if (item.price_money > 0) priceDetails.push(`${item.price_money * quantity} монет`);
+            if (item.price_silver > 0) priceDetails.push(`${item.price_silver * quantity} серебра`);
+            if (item.price_silver_dust > 0) priceDetails.push(`${item.price_silver_dust * quantity} серебряной пыли`);
+            if (item.price_gold > 0) priceDetails.push(`${item.price_gold * quantity} золота`);
+            if (item.price_gold_dust > 0) priceDetails.push(`${item.price_gold_dust * quantity} золотой пыли`);
+            
+            alert(`Вы купили ${quantity}x ${item.name} за ${priceDetails.join(', ')}!`);
+        }
+        
+        function shopAddToCart(item, quantity) {
+            const existingItem = shopCart.find(i => i.name === item.name);
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                shopCart.push({
+                    ...item,
+                    quantity: quantity
+                });
+            }
+            shopUpdateCart();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('shop-items-container');
+            const filtersContainer = document.getElementById('type-filters');
+            
+            try {
+                // Получаем данные из script-тега
+                const dataElement = document.getElementById('items-data');
+                if (!dataElement) {
+                    throw new Error("Element with items data not found");
+                }
+                
+                allItems = JSON.parse(dataElement.textContent);
+                console.log("Loaded items:", allItems);
+                
+                // Обрабатываем предметы без типа - отправляем их в "Разное"
+                allItems = allItems.map(item => {
+                    if (!item.subtype) {
+                        item.subtype = 'Разное';
+                    }
+                    return item;
+                });
+                
+                // Инициализация фильтров
+                const filterItems = document.querySelectorAll('.shop-filter-item[data-type]');
+                
+                // Устанавливаем первый фильтр как активный по умолчанию
+                if (filterItems.length > 0) {
+                    filterItems[0].classList.add('active');
+                    shopCurrentType = filterItems[0].getAttribute('data-type');
+                }
+                
+                filterItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        // Удаляем active у всех
+                        filterItems.forEach(i => i.classList.remove('active'));
+                        
+                        // Добавляем active к выбранному
+                        this.classList.add('active');
+                        
+                        // Обновляем текущий тип
+                        shopCurrentType = this.getAttribute('data-type');
+                        
+                        // Обновляем отображение
+                        displayItems();
+                    });
+                });
+                
+                // Обработчик фильтра по уровню
+                document.getElementById('shop-level-filter-input').addEventListener('input', function(e) {
+                    const level = e.target.value.trim();
+                    if (level === "" || isNaN(level)) {
+                        shopCurrentLevelFilter = null;
+                    } else {
+                        shopCurrentLevelFilter = parseInt(level);
+                        if (shopCurrentLevelFilter < 0) shopCurrentLevelFilter = 0;
+                        e.target.value = shopCurrentLevelFilter;
+                    }
+                    displayItems();
+                });
+
+                // Функция отображения предметов
+                function displayItems() {
+                    container.innerHTML = '';
+                    
+                    // Создаем заголовок
+                    const typeElement = document.querySelector(`.shop-filter-item[data-type="${shopCurrentType}"]`);
+                    const typeName = typeElement ? typeElement.textContent : shopCurrentType;
+                    
+                    const header = document.createElement('div');
+                    header.className = 'shop-column-header';
+                    header.innerHTML = `
+                        <span>${typeName}</span>
+                        <div class="shop-level-filter">
+                            <span>Уровень:</span>
+                            <input type="number" class="shop-level-filter-input" id="shop-level-filter-input" min="0" 
+                                   value="${shopCurrentLevelFilter || ''}" placeholder="Все">
+                        </div>
+                    `;
+                    container.appendChild(header);
+                    
+                    // Фильтрация предметов
+                    let filteredItems = shopCurrentType 
+                        ? allItems.filter(item => item.subtype === shopCurrentType) 
+                        : allItems;
+                    
+                    // Фильтрация по уровню
+                    if (shopCurrentLevelFilter !== null) {
+                        filteredItems = filteredItems.filter(item => {
+                            return !item.require_level || item.require_level <= shopCurrentLevelFilter;
+                        });
+                    }
+                    
+                    if (filteredItems.length === 0) {
+                        const noItems = document.createElement('div');
+                        noItems.className = 'shop-item';
+                        noItems.textContent = 'Нет предметов в этой категории';
+                        container.appendChild(noItems);
+                        return;
+                    }
+                    
+                    // Группировка по категориям (если нужно)
+                    const categoryHeader = document.createElement('div');
+                    categoryHeader.className = 'shop-category-header';
+                    categoryHeader.textContent = typeName;
+                    container.appendChild(categoryHeader);
+                    
+                    // Отображение предметов
+                    filteredItems.forEach(item => {
+                        const priceStr = formatPrices(item);
+                        const bonusesHtml = getBonusesHtml(item);
+                        const requirementsHtml = getRequirementsHtml(item);
+                        
+                        const itemElement = document.createElement('div');
+                        itemElement.className = 'shop-item';
+                        itemElement.innerHTML = `
+                            <div class="shop-item-header">
+                                <div class="shop-item-name">${item.name}</div>
+                                <div class="shop-item-durability">Прочность: ${item.current_durability || 0}/${item.max_durability || 0}</div>
+                            </div>
+                            <div class="shop-item-sections-container">
+                                <div class="shop-item-section shop-item-icon-section">
+                                    <div class="shop-item-icon">${item.image ? `<img src="${item.image}" alt="${item.name}" style="max-width:100%; max-height:100%;">` : '⚔️'}</div>
+                                    <div class="shop-item-price">${priceStr}</div>
+                                </div>
+                                <div class="shop-item-section shop-item-details-section">
+                                    <div class="shop-section-title">Характеристики:</div>
+                                    <div class="shop-item-details">${bonusesHtml}</div>
+                                </div>
+                                <div class="shop-item-section shop-item-requirements-section">
+                                    <div class="shop-section-title">Требования:</div>
+                                    <div class="shop-item-requirements">${requirementsHtml}</div>
+                                </div>
+                                <div class="shop-item-section shop-item-controls-section">
+                                    <div class="shop-quantity-selector">
+                                        <input type="number" class="shop-quantity-input" value="1" min="1" max="25">
+                                        <button class="shop-buy-button">Купить</button>
+                                    </div>
+                                    <button class="shop-add-to-cart-button">В корзину</button>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(itemElement);
+                        
+                        // Обработчики событий для кнопок
+                        itemElement.querySelector('.shop-buy-button').addEventListener('click', function() {
+                            const quantity = parseInt(itemElement.querySelector('.shop-quantity-input').value);
+                            if (quantity < 1 || quantity > 25) {
+                                alert('Количество должно быть от 1 до 25');
+                                return;
+                            }
+                            shopBuyItem(item, quantity);
+                        });
+                        
+                        itemElement.querySelector('.shop-add-to-cart-button').addEventListener('click', function() {
+                            const quantity = parseInt(itemElement.querySelector('.shop-quantity-input').value);
+                            if (quantity < 1 || quantity > 25) {
+                                alert('Количество должно быть от 1 до 25');
+                                return;
+                            }
+                            shopAddToCart(item, quantity);
+                        });
+                    });
+                }
+                
+                // Функция для формирования HTML бонусов
+                function getBonusesHtml(item) {
+                    const bonuses = [];
+                    
+                    // Базовые характеристики
+                    if (item.bonus_strength > 0) bonuses.push(`Сила: +${item.bonus_strength}`);
+                    if (item.bonus_agility > 0) bonuses.push(`Ловкость: +${item.bonus_agility}`);
+                    if (item.bonus_intuition > 0) bonuses.push(`Интуиция: +${item.bonus_intuition}`);
+                    if (item.bonus_endurance > 0) bonuses.push(`Выносливость: +${item.bonus_endurance}`);
+                    if (item.bonus_intelligence > 0) bonuses.push(`Интеллект: +${item.bonus_intelligence}`);
+                    if (item.bonus_wisdom > 0) bonuses.push(`Мудрость: +${item.bonus_wisdom}`);
+                    if (item.bonus_spirit > 0) bonuses.push(`Дух: +${item.bonus_spirit}`);
+                    
+                    // Боевые характеристики
+                    if (item.bonus_phys_damage_min > 0 || item.bonus_phys_damage_max > 0) 
+                        bonuses.push(`Урон: ${item.bonus_phys_damage_min}-${item.bonus_phys_damage_max}`);
+                    if (item.bonus_crit_chance > 0) bonuses.push(`Шанс крита: +${item.bonus_crit_chance}%`);
+                    if (item.bonus_dodge_chance > 0) bonuses.push(`Уклонение: +${item.bonus_dodge_chance}%`);
+                    if (item.bonus_shield_block > 0) bonuses.push(`Блок щитом: +${item.bonus_shield_block}%`);
+                    if (item.bonus_parry > 0) bonuses.push(`Парирование: +${item.bonus_parry}%`);
+                    if (item.bonus_counterattack > 0) bonuses.push(`Контратака: +${item.bonus_counterattack}%`);
+                    if (item.bonus_armor_penetration > 0) bonuses.push(`Пробитие брони: +${item.bonus_armor_penetration}%`);
+                    if (item.bonus_phys_absorption_percent > 0) bonuses.push(`Поглощение физ. урона: +${item.bonus_phys_absorption_percent}%`);
+                    
+                    // Магические характеристики
+                    if (item.bonus_magic_power > 0) bonuses.push(`Магическая сила: +${item.bonus_magic_power}`);
+                    if (item.bonus_magic_power_fire > 0) bonuses.push(`Сила огня: +${item.bonus_magic_power_fire}`);
+                    if (item.bonus_magic_power_air > 0) bonuses.push(`Сила воздуха: +${item.bonus_magic_power_air}`);
+                    if (item.bonus_magic_power_water > 0) bonuses.push(`Сила воды: +${item.bonus_magic_power_water}`);
+                    if (item.bonus_magic_power_earth > 0) bonuses.push(`Сила земли: +${item.bonus_magic_power_earth}`);
+                    if (item.bonus_magic_power_light > 0) bonuses.push(`Сила света: +${item.bonus_magic_power_light}`);
+                    if (item.bonus_magic_power_dark > 0) bonuses.push(`Сила тьмы: +${item.bonus_magic_power_dark}`);
+                    if (item.bonus_magic_resist_penetration > 0) bonuses.push(`Пробитие сопротивления: +${item.bonus_magic_resist_penetration}%`);
+                    
+                    if (bonuses.length === 0) return 'Нет бонусов';
+                    
+                    return bonuses.join('<br>');
+                }
+                
+                // Функция для формирования HTML требований
+                function getRequirementsHtml(item) {
+                    const requirements = [];
+                    
+                    if (item.require_level > 0) requirements.push(`Уровень: ${item.require_level}`);
+                    if (item.require_strength > 0) requirements.push(`Сила: ${item.require_strength}`);
+                    if (item.require_agility > 0) requirements.push(`Ловкость: ${item.require_agility}`);
+                    if (item.require_intuition > 0) requirements.push(`Интуиция: ${item.require_intuition}`);
+                    if (item.require_endurance > 0) requirements.push(`Выносливость: ${item.require_endurance}`);
+                    if (item.require_intelligence > 0) requirements.push(`Интеллект: ${item.require_intelligence}`);
+                    if (item.require_wisdom > 0) requirements.push(`Мудрость: ${item.require_wisdom}`);
+                    if (item.require_spirit > 0) requirements.push(`Дух: ${item.require_spirit}`);
+                    
+                    if (requirements.length === 0) return 'Нет требований';
+                    
+                    return requirements.join('<br>');
+                }
+
+                // Первоначальное отображение предметов
+                displayItems();
+
+                // Обработчики кнопок корзины
+                document.getElementById('shop-checkout-button').addEventListener('click', function() {
+                    if (shopCart.length === 0) {
+                        alert('Корзина пуста!');
+                        return;
+                    }
+                    
+                    const totals = {
+                        money: 0,
+                        silver: 0,
+                        silver_dust: 0,
+                        gold: 0,
+                        gold_dust: 0
+                    };
+                    
+                    shopCart.forEach(item => {
+                        if (item.price_money > 0) totals.money += item.price_money * item.quantity;
+                        if (item.price_silver > 0) totals.silver += item.price_silver * item.quantity;
+                        if (item.price_silver_dust > 0) totals.silver_dust += item.price_silver_dust * item.quantity;
+                        if (item.price_gold > 0) totals.gold += item.price_gold * item.quantity;
+                        if (item.price_gold_dust > 0) totals.gold_dust += item.price_gold_dust * item.quantity;
+                    });
+                    
+                    const totalParts = [];
+                    if (totals.money > 0) totalParts.push(`${totals.money} монет`);
+                    if (totals.silver > 0) totalParts.push(`${totals.silver} серебра`);
+                    if (totals.silver_dust > 0) totalParts.push(`${totals.silver_dust} серебряной пыли`);
+                    if (totals.gold > 0) totalParts.push(`${totals.gold} золота`);
+                    if (totals.gold_dust > 0) totalParts.push(`${totals.gold_dust} золотой пыли`);
+                    
+                    alert(`Покупка совершена на сумму ${totalParts.join(', ')}!`);
+                    shopCart = [];
+                    shopUpdateCart();
+                });
+                
+                document.getElementById('shop-cancel-button').addEventListener('click', function() {
+                    if (shopCart.length === 0) {
+                        alert('Корзина уже пуста!');
+                        return;
+                    }
+                    if (confirm('Вы уверены, что хотите очистить корзину?')) {
+                        shopCart = [];
+                        shopUpdateCart();
+                    }
+                });
+                
+                document.querySelector('.shop-sell-button').addEventListener('click', function() {
+                    alert('Открывается интерфейс продажи предметов');
+                });
+
+            } catch (error) {
+                console.error("Error loading items:", error);
+                container.innerHTML = `
+                    <div class="error-message">
+                        Ошибка загрузки данных: ${error.message}
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

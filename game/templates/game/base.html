@@ -1,0 +1,19 @@
+<!-- game/base.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    {% load static %}
+    <meta charset="UTF-8" />
+    <title>{% block title %}Combats Clone{% endblock %}</title>
+
+    {% block head %}
+    {% endblock %}
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body {% block body_class %}{% endblock %}>
+    {% block content %}{% endblock %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

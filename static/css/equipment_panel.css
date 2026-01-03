@@ -1,0 +1,105 @@
+.character-container {
+    width: 300px;
+    height: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding-top: 15px;
+    border: 1px solid blue
+}
+
+/* Основной контейнер для всей экипировки */
+.equipment-area {
+    position: relative;
+    width: 285px;
+    height: 375px;
+    flex: 1;
+    margin-bottom: 15px;
+    border: 1px solid green;
+}
+
+/* Фоновая подложка для области экипировки */
+.equipment-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(50, 30, 10, 0.3);
+    border-radius: 6px;
+    z-index: 1;
+}
+
+/* Область для изображения персонажа */
+.character-image {
+    position: absolute;
+    width: 60%;
+    height: 80%;
+    bottom: 0;
+    left: 20%;
+    background: url('/static/img/obraz/skin.png') no-repeat center center;
+    border-radius: 4px;
+    z-index: 2;
+    border: 1px solid blue;
+}
+
+/* Контейнер для всех слотов экипировки */
+.slots-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+}
+
+/* Стили для слотов экипировки */
+.equipment-slot {
+    position: absolute;
+    background: rgba(255,255,255,0.5);
+    border: 1px solid red;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 10px;
+    text-align: center;
+    padding: 2px;
+    box-sizing: border-box;
+    z-index: 4;
+}
+
+/* Индивидуальные размеры и позиционирование для каждого слота */
+.slot-helmet { width: 75px; height: 75px; top: 5px; left:105px }
+.slot-necklace { width: 75px; height: 30px; top: 30px; left: 30px;  }
+.slot-earrings { width: 75px; height: 30px; top: 30px; right: 30px; }
+.slot-chest { width: 75px; height: 100px; top: 235px; left: 5px; }
+.slot-shirt { width: 75px; height: 100px; top: 235px; left: 5px; }
+.slot-bracelet-1 { width: 75px; height: 30px; top: 105px; left: 5px; }
+.slot-bracelet-2 { width: 75px; height: 30px; top: 105px; right: 5px; }
+.slot-gloves { width: 75px; height: 45px; top: 60px; left: 5px; }
+.slot-bracers { width: 75px; height: 45px; top: 60px; right: 5px; }
+.slot-left-hand { width: 75px; height: 75px; top: 160px; left: 5px; }
+.slot-right-hand { width: 75px; height: 75px; top: 160px; right: 5px; }
+.slot-belt { width: 75px; height: 45px; top: 335px; left: 5px; }
+.slot-pants { width: 75px; height: 100px; top: 235px; right: 5px; }
+.slot-boots { width: 75px; height: 45px; top: 335px; right: 5px; }
+.slot-ring-1 { width: 25px; height: 25px; top: 135px; left: 5px; }
+.slot-ring-2 { width: 25px; height: 25px; top: 135px; left: 30px; }
+.slot-ring-3 { width: 25px; height: 25px; top: 135px; left: 55px; }
+.slot-ring-4 { width: 25px; height: 25px; top: 135px; right: 55px; }
+.slot-ring-5 { width: 25px; height: 25px; top: 135px; right: 30px; }
+.slot-ring-6 { width: 25px; height: 25px; top: 135px; right: 5px; }
+.slot-potion-1 { width: 40px; height: 30px; top: 350px; left: 82.5px; }
+.slot-potion-2 { width: 40px; height: 30px; top: 350px; left: 122.5px; }
+.slot-potion-3 { width: 40px; height: 30px; top: 350px; right: 82.5px; }
+.slot-orb { width: 40px; height: 40px; top: 305px; right: 82.5px; }
+
+.slot-plash { width: 75px; height: 100px; top: 235px; left: 5px; }
+.slot-helmet-kv { width: 75px; height: 75px; top: 5px; left:105px }
+.slot-necklace-kv { width: 75px; height: 30px; top: 30px; left: 30px;  }
+.slot-earrings-kv { width: 75px; height: 30px; top: 30px; right: 30px; }
+.slot-chest-kv { width: 75px; height: 100px; top: 235px; left: 5px; }
+.slot-gloves-kv { width: 75px; height: 45px; top: 60px; left: 5px; }
+.slot-bracers-kv { width: 75px; height: 45px; top: 60px; right: 5px; }
+.slot-belt-kv { width: 75px; height: 45px; top: 335px; left: 5px; }
+.slot-pants-kv { width: 75px; height: 100px; top: 235px; right: 5px; }
+.slot-boots-kv { width: 75px; height: 45px; top: 335px; right: 5px; }
+.slot-ring-1-kv { width: 25px; height: 25px; top: 135px; left: 5px; }

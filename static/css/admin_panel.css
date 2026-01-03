@@ -1,0 +1,291 @@
+/* Admin Panel Styles with ap- prefix */
+.ap-container {
+    display: flex;
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f2f5;
+    min-height: 100vh;
+}
+
+.ap-left-panel {
+    width: 300px;
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.ap-right-panel {
+    flex: 1;
+    padding: 20px;
+    background-color: #ecf0f1;
+}
+
+.ap-title {
+    margin-top: 0;
+    color: #ecf0f1;
+    border-bottom: 1px solid #34495e;
+    padding-bottom: 10px;
+}
+
+.ap-search-container {
+    margin: 15px 0;
+}
+
+#ap-player-search {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: none;
+}
+
+.ap-player-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.ap-player-item {
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #34495e;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.ap-player-item:hover {
+    background-color: #3d566e;
+}
+
+.ap-selected-player-info {
+    background-color: #34495e;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.ap-tab-buttons {
+    display: flex;
+    border-bottom: 1px solid #bdc3c7;
+    margin-bottom: 20px;
+}
+
+.ap-tab-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #ecf0f1;
+    border: 1px solid #bdc3c7;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    margin-right: 5px;
+}
+
+.ap-tab-button.active {
+    background-color: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.ap-tab-content {
+    display: none;
+    background-color: white;
+    padding: 20px;
+    border-radius: 0 4px 4px 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.ap-tab-content.active {
+    display: block;
+}
+
+.ap-function {
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+    border-left: 4px solid #3498db;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ap-function:hover {
+    background-color: #e9ecef;
+    border-left-color: #2980b9;
+}
+
+.ap-function-description {
+    font-size: 0.9em;
+    color: #7f8c8d;
+    margin-top: 5px;
+}
+
+.ap-item-management {
+    margin-top: 20px;
+}
+
+.ap-item-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.ap-item-table th, 
+.ap-item-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.ap-item-table th {
+    background-color: #3498db;
+    color: white;
+}
+
+.ap-item-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.ap-item-table tr:hover {
+    background-color: #e9ecef;
+}
+
+.ap-edit-btn, 
+.ap-delete-btn {
+    padding: 5px 10px;
+    margin: 0 2px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.ap-edit-btn {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.ap-edit-btn:hover {
+    opacity: 0.9;
+}
+
+.ap-delete-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.ap-delete-btn:hover {
+    opacity: 0.9;
+}
+
+/* Modal styles for admin panel */
+.ap-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.ap-modal-content {
+    background-color: #f8f9fa;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.ap-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.ap-modal-title {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.ap-modal-close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.ap-modal-close:hover {
+    color: #333;
+}
+
+.ap-form-group {
+    margin-bottom: 15px;
+}
+
+.ap-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.ap-form-group input,
+.ap-form-group select,
+.ap-form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.ap-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.ap-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.ap-btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.ap-btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.ap-btn-danger {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.ap-alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.ap-alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.ap-alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}

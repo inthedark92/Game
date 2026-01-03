@@ -1,0 +1,432 @@
+/* Основные стили */
+body {
+    background: #5c5750;
+    color: #1c1c1c;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Стили для чат-секции */
+.chat-section {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 150px;
+    min-height: 100px;
+    max-height: 60vh;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    grid-template-rows: 1fr auto;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+}
+
+.resize-handle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    cursor: row-resize;
+    z-index: 201;
+    background: transparent;
+}
+
+.chat-container {
+    background: url('/static/img/chat3.png') no-repeat center center;
+    background-size: cover;
+    background-position: center;
+    color: rgb(0, 0, 0);
+    padding: 5px;
+    font-size: 12px;
+    overflow: auto;
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.bottom-panel {
+    background: #333;
+    font-size: 10px;
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+}
+
+/* Основной контейнер чата */
+.chat-main-container {
+    flex: 1;
+    display: flex;
+    height: calc(100% - 35px);
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Основное содержимое чата и вкладки */
+.chat-content-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Верхняя панель с вкладками */
+.chat-tabs-container {
+    padding: 2px;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Основные вкладки */
+.tabs-wrapper {
+    display: flex;
+    flex-grow: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+/* Стили для вкладок чата */
+.chat-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 5px;
+    cursor: pointer;
+    border: 1px solid black;
+    border-right: 1px solid #8b5e3c;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    border-radius: 8px;
+    margin: 0 2px;
+    flex-shrink: 0;
+    width: 70px;
+}
+
+.chat-tab:hover {
+    background: url('/static/img/chat.png') no-repeat center center;
+    border-radius: 8px;
+    border: 1px solid black;
+    color: #1c1c1c;
+}
+
+.chat-tab.active {
+    background: url('/static/img/chat2.png') no-repeat center center;
+    background-size: 100% 100%;
+    border: 1px solid black;
+    color: #1c1c1c;
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+/* Информация о реальном времени */
+.real-time-info {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    margin-left: 10px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 2px 2px 2px #000;
+    border: 1px solid rgb(255, 255, 255);
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.3);
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Кнопка системных сообщений */
+.system-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 5px;
+    cursor: pointer;
+    border: 2px solid black;
+    border-radius: 5px;
+    width: 80px;
+    flex-shrink: 0;
+}
+
+.system-toggle:hover {
+    background: #e9d6b5;
+    color: #1c1c1c;
+}
+
+/* Основное содержимое чата */
+.chat-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1px;
+    position: relative;
+    min-height: 100px;
+}
+
+/* Фон чата */
+.chat-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    min-height: 100%;
+    background: url('/static/img/chat.png') repeat-y center center;
+    background-size: 100% auto;
+    border-radius: 8px;
+    border: 2px solid black;
+    z-index: 1;
+}
+
+/* Сообщения чата */
+.chat-messages {
+    position: relative;
+    z-index: 2;
+    padding: 5px;
+    min-height: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.chat-messages > div {
+    height: 100%;
+    overflow-y: auto;
+    display: none;
+}
+
+.chat-messages > div[style*="block"] {
+    display: block !important;
+}
+
+.chat-messages p {
+    margin: 2px 0;
+    padding: 2px 5px;
+    background-color: rgba(244, 231, 212, 0.7);
+    border-radius: 3px;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Кастомный скроллбар для сообщений чата */
+.chat-messages > div::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages > div::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.chat-messages > div::-webkit-scrollbar-thumb {
+    background: rgba(139, 94, 60, 0.7);
+    border-radius: 3px;
+}
+
+.chat-messages > div::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 94, 60, 0.9);
+}
+
+/* Системная панель */
+.system-panel {
+    display: none;
+    width: 300px;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: url('/static/img/chat.png') no-repeat center center;
+    background-size: 100% 100%;
+    border-left: 1px solid #8b5e3c;
+    z-index: 10;
+    border-radius: 5px;
+    border: 2px solid black;
+}
+
+.system-panel p {
+    margin: 4px 0;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Групповая панель */
+.group-panel {
+    display: none;
+    width: 300px;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: url('/static/img/chat2.png') no-repeat center center;
+    background-size: 100% 100%;
+    border-left: 1px solid #8b5e3c;
+    z-index: 10;
+    border-radius: 5px;
+    border: 2px solid black;
+}
+
+/* Нижняя панель */
+.bottom-container {
+    display: flex;
+    width: 100%;
+    height: 35px;
+    background: url('/static/img/chat4.png') no-repeat center center;
+    background-size: 100% 100%;
+    color: #aaa;
+    font-size: 12px;
+    padding: 0 3px 0px 3px;
+    box-sizing: border-box;
+    align-items: center;
+    gap: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Поле ввода чата */
+.chat-input {
+    flex: 1;
+    min-width: 100px;
+    height: 30px;
+    background: url('/static/img/chat.png') no-repeat center center;
+    background-size: 100% 100%;
+    border-radius: 8px;
+    color: #000000;
+    border: 1px solid #8b5e3c;
+    padding: 5px;
+    box-sizing: border-box;
+    resize: none;
+    overflow: hidden;
+}
+
+/* Кнопки чата */
+.chat-button,
+.action-button,
+.action-button-link {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    background: #444;
+    color: #eee;
+    border: 1px solid #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 8px;
+    position: relative;
+}
+
+.chat-button:hover,
+.action-button:hover,
+.action-button-link:hover {
+    background: #e9d6b5;
+    border-radius: 8px;
+    color: #000;
+}
+
+/* Стили для подсказок */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e9d6b5;
+    color: #1c1c1c;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+[data-tooltip]:hover::after {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Модальные окна */
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #e9d6b5;
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 15px;
+    z-index: 100;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.admin-login-modal {
+    width: 300px;
+}
+
+.group-modal {
+    width: 300px;
+}
+
+.modal h3 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.modal label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.modal input,
+.modal select {
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+}
+
+.modal-buttons {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.modal-buttons button {
+    padding: 5px 15px;
+    margin-right: 10px;
+}
+
+.error-message {
+    color: red;
+    margin-top: 10px;
+    text-align: center;
+    display: none;
+}
+
+/* Скрытие полосы прокрутки */
+::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+}

@@ -1,0 +1,37 @@
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        box-sizing: border-box;
+        display: grid;
+        grid-template-rows: 30px 30px 1fr;
+        grid-template-columns: 1fr;
+        overflow: hidden;
+        background: #222;
+        color: #eee;
+        font-family: Arial, sans-serif;
+    }
+        
+.resizable-container {
+    display: flex;
+    height: calc(100vh - 60px);
+    width: 100vw;
+    overflow: hidden;
+    position: relative;
+    background: url('/static/img/back_fon.png') no-repeat center center;
+    background-size: 100% 100%;
+    background-position: center;
+    grid-row: 3;
+}
+
+.top-image {
+    width: 100%;
+    height: 30px;
+    background: url('/static/img/banner.svg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+    z-index: 1000; /* Увеличили z-index */
+    grid-row: 1; /* Располагаем в первой строке grid */
+}
+
+

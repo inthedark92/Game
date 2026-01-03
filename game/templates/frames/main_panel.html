@@ -1,0 +1,67 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/main_panel.css' %}">    
+</head>
+<body>
+    <!-- Основной контейнер для центрирования -->
+    <div class="main-content">
+        <!-- Индикатор перехода -->
+        <div id="move-indicator">
+            <div id="move-progress">
+                <div id="move-progress-bar"></div>
+            </div>
+            <button id="cancel-move-btn">×</button>
+        </div>
+        
+        <!-- Информация о локации -->
+        <div class="location-info-container">
+            <div class="location-text-info">
+                <div id="location-name">Название локации</div>
+                <div id="location-description">Описание текущей локации или зоны...</div>
+            </div>
+            <div class="location-image">
+                <img id="location-image" src="">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция для управления индикатором перехода
+        function showMoveIndicator(seconds, callback) {
+            const indicator = document.getElementById('move-indicator');
+            const progressBar = document.getElementById('move-progress-bar');
+            
+            indicator.style.display = 'block';
+            progressBar.style.width = '0%';
+            
+            // Сброс предыдущих анимаций
+            progressBar.style.transition = 'none';
+            void progressBar.offsetWidth; // Триггер перерисовки
+            progressBar.style.transition = `width ${seconds}s linear`;
+            
+            setTimeout(() => {
+                progressBar.style.width = '100%';
+            }, 10);
+            
+            const moveTimer = setTimeout(() => {
+                indicator.style.display = 'none';
+                if (callback) callback();
+            }, seconds * 1000);
+            
+            document.getElementById('cancel-move-btn').onclick = () => {
+                clearTimeout(moveTimer);
+                indicator.style.display = 'none';
+                progressBar.style.width = '0%';
+            };
+            
+            return {
+                cancel: function() {
+                    clearTimeout(moveTimer);
+                    indicator.style.display = 'none';
+                    progressBar.style.width = '0%';
+                }
+            };
+        }
+    </script>
+</body>
+</html>

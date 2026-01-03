@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/shop_panel.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин</title>
+</head>
+
+<body class="shop-body">
+    <div class="shop-container">
+        <!-- Колонка корзины слева -->
+        <div class="shop-cart-column">
+            <div class="shop-cart-header">Ваш заказ</div>
+            <div class="shop-cart-items" id="shop-cart-items">
+                <div class="shop-empty-cart">Корзина пуста</div>
+            </div>
+            <div class="shop-cart-total" id="shop-cart-total">
+                <div class="shop-cart-total-prices">
+                    <div class="shop-cart-total-group">
+                        <div class="shop-cart-total-label">Серебро</div>
+                        <div class="shop-cart-total-value" id="total-silver">0 гр</div>
+                    </div>
+                    <div class="shop-cart-total-group">
+                        <div class="shop-cart-total-label">Золото</div>
+                        <div class="shop-cart-total-value" id="total-gold">0 гр</div>
+                    </div>
+                </div>
+                <div class="shop-cart-final-price" id="total-money">0 монет</div>
+            </div>
+            <div class="shop-cart-controls">
+                <button class="shop-cart-button shop-checkout-button" id="shop-checkout-button">Оплатить</button>
+                <button class="shop-cart-button shop-cancel-button" id="shop-cancel-button">Отменить</button>
+            </div>
+        </div>
+        
+        <!-- Центральная колонка с товарами -->
+        <div class="shop-items-column" id="shop-items-container">
+            <div class="loading-message">Загрузка товаров...</div>
+        </div>
+        
+        <!-- Колонка фильтров справа -->
+        <div class="shop-filter-column" id="type-filters">
+            <div class="shop-filter-category">
+                <div class="shop-filter-category-header">Оружие</div>
+                <div class="shop-filter-item" data-type="sword">Мечи</div>
+                <div class="shop-filter-item" data-type="axe">Топоры</div>
+                <div class="shop-filter-item" data-type="dagger">Кинжалы</div>
+                <div class="shop-filter-item" data-type="mace">Дубины</div>
+                <div class="shop-filter-item" data-type="staff">Посохи</div>
+            </div>
+            
+            <div class="shop-filter-category">
+                <div class="shop-filter-category-header">Броня</div>
+                <div class="shop-filter-item" data-type="helmet">Шлемы</div>
+                <div class="shop-filter-item" data-type="chest">Верхняя броня</div>
+                <div class="shop-filter-item" data-type="pants">Нижняя броня</div>
+                <div class="shop-filter-item" data-type="shirt">Рубашки</div>
+                <div class="shop-filter-item" data-type="gloves">Перчатки</div>
+                <div class="shop-filter-item" data-type="bracer">Наручи</div>
+                <div class="shop-filter-item" data-type="boots">Ботинки</div>
+                <div class="shop-filter-item" data-type="belt">Пояса</div>
+                <div class="shop-filter-item" data-type="shield">Щиты</div>
+            </div>
+            
+            <div class="shop-filter-category">
+                <div class="shop-filter-category-header">Украшения</div>
+                <div class="shop-filter-item" data-type="necklace">Ожерелья</div>
+                <div class="shop-filter-item" data-type="earring">Серьги</div>
+                <div class="shop-filter-item" data-type="bracelet">Браслеты</div>
+                <div class="shop-filter-item" data-type="ring">Кольца</div>
+            </div>
+            
+            <div class="shop-filter-category">
+                <div class="shop-filter-category-header">Прочее</div>
+                <div class="shop-filter-item" data-type="potion">Зелья</div>
+                <div class="shop-filter-item" data-type="gift">Подарки</div>
+                <div class="shop-filter-item" data-type="misc">Разное</div>
+            </div>
+            
+            <div class="shop-sell-section">
+                <button class="shop-sell-button">Продать предметы</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let shopCart = [];
+        let shopCurrentType = null;
+        let shopCurrentLevelFilter = null;
+        let allItems = [];
+
+        function formatPrices(item) {
+            const parts = [];
+            if (item.price_money > 0) parts.push({value: item.price_money, currency: 'монет'});
+            if (item.price_silver > 0) parts.push({value: item.price_silver, currency:'гр серебра'});
+            if (item.price_gold > 0) parts.push({value: item.price_gold, currency:'гр золота'});
+            if (parts.length === 0) return null;
+            return parts;
+        }
+
+        function shopUpdateCart() {
+            const cartItemsContainer = document.getElementById('shop-cart-items');
+            const cartTotalElement = document.getElementById('shop-cart-total');
+            
+            cartItemsContainer.innerHTML = '';
+            
+            if (shopCart.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="shop-empty-cart">Корзина пуста</div>';
+                document.getElementById('total-silver').textContent = '0 гр';
+                document.getElementById('total-gold').textContent = '0 гр';
+                document.getElementById('total-money').textContent = '0 монет';
+                return;
+            }
+            
+            let totalSilver = 0;
+            let totalGold = 0;
+            let totalMoney = 0;
+            
+            shopCart.forEach((item) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'shop-cart-item';
+                
+                // Обновляем итоговые суммы
+                totalSilver += (item.price_silver || 0) * item.quantity;
+                totalGold += (item.price_gold || 0) * item.quantity;
+                totalMoney += (item.price_money || 0) * item.quantity;
+
+                itemElement.innerHTML = `
+                    <div class="shop-cart-item-header">
+                        <div class="shop-cart-item-name">${item.name}</div>
+                        <div class="shop-cart-item-quantity">x${item.quantity}</div>
+                        <div class="shop-cart-item-remove">×</div>
+                    </div>
+                    <div class="shop-cart-item-prices">
+                        <div class="shop-cart-price-row">
+                            <div class="shop-cart-price-group">
+                                <div class="shop-cart-price-label">Серебро</div>
+                                <div class="shop-cart-price-value">${item.price_silver ? item.price_silver * item.quantity : 0} гр</div>
+                            </div>
+                            <div class="shop-cart-price-group">
+                                <div class="shop-cart-price-label">Золото</div>
+                                <div class="shop-cart-price-value">${item.price_gold ? item.price_gold * item.quantity : 0} гр</div>
+                            </div>
+                        </div>
+                        <div class="shop-cart-total-price">${item.price_money ? item.price_money * item.quantity : 0} монет</div>
+                    </div>
+                `;
+                cartItemsContainer.appendChild(itemElement);
+                
+                // Добавляем обработчик удаления
+                itemElement.querySelector('.shop-cart-item-remove').addEventListener('click', function() {
+                    shopCart = shopCart.filter(i => i.id !== item.id);
+                    shopUpdateCart();
+                });
+            });
+            
+            // Обновляем итоговые значения
+            document.getElementById('total-silver').textContent = totalSilver + ' гр';
+            document.getElementById('total-gold').textContent = totalGold + ' гр';
+            document.getElementById('total-money').textContent = totalMoney + ' монет';
+        }
+
+        function shopBuyItem(item, quantity) {
+            const priceDetails = [];
+            if (item.price_money > 0) priceDetails.push(`${item.price_money * quantity} монет`);
+            if (item.price_silver > 0) priceDetails.push(`${item.price_silver * quantity} гр серебра`);
+            if (item.price_gold > 0) priceDetails.push(`${item.price_gold * quantity} гр золота`);
+            
+            alert(`Вы купили ${quantity}x ${item.name} за ${priceDetails.join(', ')}!`);
+        }
+        
+        function shopAddToCart(item, quantity) {
+            const existingItem = shopCart.find(i => i.id === item.id);
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                shopCart.push({
+                    ...item,
+                    quantity: quantity
+                });
+            }
+            shopUpdateCart();
+        }
+
+        function getBonusesHtml(item) {
+            const bonuses = [];
+            
+            if (item.bonus_strength > 0) bonuses.push(`Сила: +${item.bonus_strength}`);
+            if (item.bonus_agility > 0) bonuses.push(`Ловкость: +${item.bonus_agility}`);
+            if (item.bonus_intuition > 0) bonuses.push(`Интуиция: +${item.bonus_intuition}`);
+            if (item.bonus_endurance > 0) bonuses.push(`Выносливость: +${item.bonus_endurance}`);
+            if (item.bonus_intelligence > 0) bonuses.push(`Интеллект: +${item.bonus_intelligence}`);
+            if (item.bonus_wisdom > 0) bonuses.push(`Мудрость: +${item.bonus_wisdom}`);
+            if (item.bonus_spirit > 0) bonuses.push(`Дух: +${item.bonus_spirit}`);
+            
+            if (item.bonus_phys_damage_min > 0 || item.bonus_phys_damage_max > 0) 
+                bonuses.push(`Урон: ${item.bonus_phys_damage_min}-${item.bonus_phys_damage_max}`);
+            if (item.bonus_crit_chance > 0) bonuses.push(`Шанс крита: +${item.bonus_crit_chance}%`);
+            if (item.bonus_dodge_chance > 0) bonuses.push(`Уклонение: +${item.bonus_dodge_chance}%`);
+            if (item.bonus_shield_block > 0) bonuses.push(`Блок щитом: +${item.bonus_shield_block}%`);
+            if (item.bonus_parry > 0) bonuses.push(`Парирование: +${item.bonus_parry}%`);
+            if (item.bonus_counterattack > 0) bonuses.push(`Контратака: +${item.bonus_counterattack}%`);
+            if (item.bonus_armor_penetration > 0) bonuses.push(`Пробитие брони: +${item.bonus_armor_penetration}%`);
+            if (item.bonus_phys_absorption_percent > 0) bonuses.push(`Поглощение физ. урона: +${item.bonus_phys_absorption_percent}%`);
+            
+            if (item.bonus_magic_power > 0) bonuses.push(`Магическая сила: +${item.bonus_magic_power}%`);
+            if (item.bonus_magic_power_fire > 0) bonuses.push(`Сила огня: +${item.bonus_magic_power_fire}%`);
+            if (item.bonus_magic_power_air > 0) bonuses.push(`Сила воздуха: +${item.bonus_magic_power_air}%`);
+            if (item.bonus_magic_power_water > 0) bonuses.push(`Сила воды: +${item.bonus_magic_power_water}%`);
+            if (item.bonus_magic_power_earth > 0) bonuses.push(`Сила земли: +${item.bonus_magic_power_earth}%`);
+            if (item.bonus_magic_power_light > 0) bonuses.push(`Сила света: +${item.bonus_magic_power_light}%`);
+            if (item.bonus_magic_power_dark > 0) bonuses.push(`Сила тьмы: +${item.bonus_magic_power_dark}%`);
+            if (item.bonus_magic_resist_penetration > 0) bonuses.push(`Пробитие сопротивления: +${item.bonus_magic_resist_penetration}%`);
+            
+            if (bonuses.length === 0) return 'Нет бонусов';
+            
+            return bonuses.join('<br>');
+        }
+        
+        function getRequirementsHtml(item) {
+            const requirements = [];
+            
+            if (item.require_level > 0) requirements.push(`Уровень: ${item.require_level}`);
+            if (item.require_strength > 0) requirements.push(`Сила: ${item.require_strength}`);
+            if (item.require_agility > 0) requirements.push(`Ловкость: ${item.require_agility}`);
+            if (item.require_intuition > 0) requirements.push(`Интуиция: ${item.require_intuition}`);
+            if (item.require_endurance > 0) requirements.push(`Выносливость: ${item.require_endurance}`);
+            if (item.require_intelligence > 0) requirements.push(`Интеллект: ${item.require_intelligence}`);
+            if (item.require_wisdom > 0) requirements.push(`Мудрость: ${item.require_wisdom}`);
+            if (item.require_spirit > 0) requirements.push(`Дух: ${item.require_spirit}`);
+            
+            if (requirements.length === 0) return 'Нет требований';
+            
+            return requirements.join('<br>');
+        }
+
+        function displayItems() {
+            const container = document.getElementById('shop-items-container');
+            container.innerHTML = '';
+            
+            // Создаем заголовок
+            const typeElement = document.querySelector(`.shop-filter-item[data-type="${shopCurrentType}"]`);
+            const typeName = typeElement ? typeElement.textContent : shopCurrentType;
+            
+            const header = document.createElement('div');
+            header.className = 'shop-column-header';
+            header.innerHTML = `
+                <span>${typeName}</span>
+                <div class="shop-level-filter">
+                    <span>Уровень:</span>
+                    <input type="number" class="shop-level-filter-input" id="shop-level-filter-input" min="0" 
+                           value="${shopCurrentLevelFilter || ''}" placeholder="Все">
+                </div>
+            `;
+            container.appendChild(header);
+            
+            // Добавляем обработчик для фильтра по уровню
+            const levelFilterInput = document.getElementById('shop-level-filter-input');
+            levelFilterInput.addEventListener('input', function(e) {
+                const level = e.target.value.trim();
+                if (level === "" || isNaN(level)) {
+                    shopCurrentLevelFilter = null;
+                } else {
+                    shopCurrentLevelFilter = parseInt(level);
+                    if (shopCurrentLevelFilter < 0) shopCurrentLevelFilter = 0;
+                    e.target.value = shopCurrentLevelFilter;
+                }
+                displayItems();
+            });
+            
+            // Фильтрация предметов
+            let filteredItems = shopCurrentType 
+                ? allItems.filter(item => item.subtype === shopCurrentType) 
+                : allItems;
+
+            console.log("Отфильтрованные товары:", filteredItems);
+            
+            // Фильтрация по уровню
+            if (shopCurrentLevelFilter !== null) {
+                filteredItems = filteredItems.filter(item => {
+                    return !item.require_level || item.require_level <= shopCurrentLevelFilter;
+                });
+            }
+            
+            if (filteredItems.length === 0) {
+                const noItems = document.createElement('div');
+                noItems.className = 'shop-item';
+                noItems.textContent = 'Нет предметов в этой категории';
+                container.appendChild(noItems);
+                return;
+            }
+            
+            // Отображение предметов
+            filteredItems.forEach(item => {
+                const prices = formatPrices(item);
+                const bonusesHtml = getBonusesHtml(item);
+                const requirementsHtml = getRequirementsHtml(item);
+                
+                const itemElement = document.createElement('div');
+                itemElement.className = 'shop-item';
+                itemElement.innerHTML = `
+                    <div class="shop-item-header">
+                        <div class="shop-item-name">${item.name}</div>
+                        <div class="shop-item-durability">Прочность: ${item.current_durability || 0}/${item.max_durability || 0}</div>
+                    </div>
+                        <div class="shop-item-sections-container">
+                            <!-- Секция 1: Фото -->
+                            <div class="shop-item-section shop-item-icon-section">
+                                <div class="shop-item-icon">
+                                    ${item.image ? `<img src="${item.image}" alt="${item.name}">` : '⚔️'}
+                                </div>
+                            </div>
+                        <div class="shop-item-section shop-item-price-section">
+                            <div class="shop-section-title">Цена:</div>
+                            <div class="shop-item-price-list">
+                                ${prices ? prices.map(price => 
+                                    `<span class="shop-item-price-item">${price.value} ${price.currency}</span>`
+                                ).join('') : '<span class="shop-item-price-item">Бесплатно</span>'}
+                            </div>
+                        </div>
+                        <div class="shop-item-section shop-item-details-section">
+                            <div class="shop-section-title">Характеристики:</div>
+                            <div class="shop-item-details">${bonusesHtml}</div>
+                        </div>
+                        <div class="shop-item-section shop-item-requirements-section">
+                            <div class="shop-section-title">Требования:</div>
+                            <div class="shop-item-requirements">${requirementsHtml}</div>
+                        </div>
+                        <div class="shop-item-section shop-item-controls-section">
+                            <div class="shop-quantity-selector">
+                                <input type="number" class="shop-quantity-input" value="1" min="1" max="25">
+                                <button class="shop-buy-button">Купить</button>
+                            </div>
+                            <button class="shop-add-to-cart-button">В корзину</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(itemElement);
+                
+                // Обработчики событий для кнопок
+                itemElement.querySelector('.shop-buy-button').addEventListener('click', function() {
+                    const quantity = parseInt(itemElement.querySelector('.shop-quantity-input').value);
+                    if (quantity < 1 || quantity > 25) {
+                        alert('Количество должно быть от 1 до 25');
+                        return;
+                    }
+                    shopBuyItem(item, quantity);
+                });
+                
+                itemElement.querySelector('.shop-add-to-cart-button').addEventListener('click', function() {
+                    const quantity = parseInt(itemElement.querySelector('.shop-quantity-input').value);
+                    if (quantity < 1 || quantity > 25) {
+                        alert('Количество должно быть от 1 до 25');
+                        return;
+                    }
+                    shopAddToCart(item, quantity);
+                });
+            });
+        }
+
+        function initFilters() {
+            const filterItems = document.querySelectorAll('.shop-filter-item[data-type]');
+            
+            // Устанавливаем первый фильтр как активный по умолчанию
+            if (filterItems.length > 0) {
+                filterItems[0].classList.add('active');
+                shopCurrentType = filterItems[0].getAttribute('data-type');
+            }
+            
+            filterItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    filterItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    shopCurrentType = this.getAttribute('data-type');
+                    displayItems();
+                });
+            });
+        }
+
+        function loadItems() {
+            const container = document.getElementById('shop-items-container');
+            container.innerHTML = '<div class="loading-message">Загрузка товаров...</div>';
+            
+            return fetch('/api/shop/items/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Загруженные товары:", data);
+                    allItems = data;
+                    return allItems;
+                })
+                .catch(error => {
+                    console.error('Error loading items:', error);
+                    container.innerHTML = `
+                        <div class="error-message">
+                            Ошибка загрузки данных: ${error.message}
+                        </div>
+                    `;
+                    throw error;
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadItems()
+                .then(() => {
+                    initFilters();
+                    displayItems();
+                    
+                    // Обработчики кнопок корзины
+                    document.getElementById('shop-checkout-button').addEventListener('click', function() {
+                        if (shopCart.length === 0) {
+                            alert('Корзина пуста!');
+                            return;
+                        }
+                        
+                        let totalSilver = 0;
+                        let totalGold = 0;
+                        let totalMoney = 0;
+                        
+                        shopCart.forEach(item => {
+                            if (item.price_silver) totalSilver += item.price_silver * item.quantity;
+                            if (item.price_gold) totalGold += item.price_gold * item.quantity;
+                            if (item.price_money) totalMoney += item.price_money * item.quantity;
+                        });
+                    
+                        alert(`Покупка совершена!\nСеребро: ${totalSilver} гр\nЗолото: ${totalGold} гр\nМонеты: ${totalMoney}`);
+                        shopCart = [];
+                        shopUpdateCart();
+                    });
+                    
+                    document.getElementById('shop-cancel-button').addEventListener('click', function() {
+                        if (shopCart.length === 0) {
+                            alert('Корзина уже пуста!');
+                            return;
+                        }
+                        if (confirm('Вы уверены, что хотите очистить корзину?')) {
+                            shopCart = [];
+                            shopUpdateCart();
+                        }
+                    });
+                    
+                    document.querySelector('.shop-sell-button').addEventListener('click', function() {
+                        alert('Открывается интерфейс продажи предметов');
+                    });
+                });
+        });
+    </script>
+</body>
+</html>

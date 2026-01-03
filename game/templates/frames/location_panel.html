@@ -1,0 +1,577 @@
+<head>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/location_panel.css' %}">    
+</head>
+<body>
+    <div id="location-panel">
+        <div id="location-content">
+            <!-- Основной компас (виден всегда) -->
+            <div id="compass-container">
+                <div class="nav-button top-button" id="top-button">
+                    <div class="nav-container" data-location="street">Переулок</div>
+                </div>
+                <div class="nav-button left-button" id="left-button">
+                    <div class="nav-container" data-location="combat-hall">Хольмганг</div>
+                </div>
+                <div class="nav-button right-button" id="right-button">
+                    <div class="nav-container" data-location="outskirts">Внешние Земли</div>
+                </div>
+                <div class="nav-button bottom-button" id="bottom-button">
+                    <div class="nav-container" data-location="suburb">Пригород</div>
+                </div>
+            </div>
+            
+            <!-- Компас для боевых залов (изначально скрыт) -->
+            <div id="combat-compass" class="hidden">
+                <div class="combat-top">
+                    <div class="nav-container" data-location="market">Каттегат</div>
+                    <div class="nav-container hidden" data-action="monster-fight">Охота на Монстров</div>
+                    <div class="nav-container hidden" data-action="arena">Кровавая Арена</div>
+                </div>
+                <div class="combat-bottom">
+                    <!-- Фоновое изображение -->
+                    <img class="combat-background" src="/static/img/zal.png" alt="Боевой компас">
+                    <!-- Сетка будет создана через JavaScript -->
+                    <div class="combat-grid" id="combat-grid"></div>
+                </div>
+            </div>
+            
+            <!-- additional-container будет динамически заполняться -->
+            <div id="additional-container"></div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // Глобальные переменные
+            let currentLocation = null;
+            let moveInProgress = false;
+            let moveTimer = null;
+
+            // Конфигурация ячеек с картинками и зонами
+            const imageCellsConfig = [
+                {row: 3, col: 8, image: '/static/img/fire3.png', zone: 'fire-hall'},
+                {row: 4, col: 6, image: '/static/img/fire3.png', zone: 'warrior-hall'},
+                {row: 4, col: 10, image: '/static/img/fire3.png', zone: 'water-hall'},
+                {row: 6, col: 5, image: '/static/img/fire3.png', zone: 'mage-hall'},
+                {row: 6, col: 8, image: '/static/img/fire3.png', zone: 'noob-hall'},
+                {row: 6, col: 11, image: '/static/img/fire3.png', zone: 'earth-hall'},
+                {row: 8, col: 6, image: '/static/img/fire3.png', zone: 'light-hall'},
+                {row: 8, col: 10, image: '/static/img/fire3.png', zone: 'wind-hall'},
+                {row: 9, col: 8, image: '/static/img/fire3.png', zone: 'dark-hall'}
+            ];
+
+            // Данные о локациях и зонах
+            const locations = {
+                'combat-hall': {
+                    title: 'Хольмганг',
+                    description: `Хольмганг — священное место поединков и испытаний, где проходят тренировки воины и маги всех уровней. 
+Здесь оттачивают технику боя, изучают боевые заклинания и готовятся к настоящим сражениям. 
+Тяжёлые удары, крики наставников и всполохи магии наполняют воздух, превращая Хольмганг в живую арену силы и воли. 
+Каждый, кто вступает сюда, стремится стать сильнее — ради славы, чести или выживания.`,
+                    zones: [],
+                    showCombatActions: true
+                },
+                'fire-hall': {
+                    title: 'Зал Огня',
+                    description: `Зал Огня — место, где рождаются и закаляются мастера огненной стихии. 
+Пылающие факелы освещают древние руны на стенах, а жар пламени ощущается с первого шага. 
+Здесь маги огня учатся управлять разрушительной силой, превращая ярость в точное искусство. 
+Каждое заклинание оттачивается среди жара, искр и вспышек — под надзором опытных наставников и древних духов пламени.`,
+                    zones: [],
+                    showCombatActions: true,
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    }
+                },
+                'warrior-hall': {
+                    title: 'Зал Войнов',
+                    description: `Зал Воинов — грохочущая арена, где закаляются сталь, мускулы и воля. 
+Тут не читают заклинания — тут бьются. 
+Каждый спарринг приближает к мастерству, каждый синяк — к победе. 
+Воин учится не бояться боли и сражаться до последнего вздоха.`,
+                    zones: [],
+                    showCombatActions: true,
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    }
+                },
+                'water-hall': {
+                    title: 'Зал Воды',
+                    description: `Зал Воды — тихое и таинственное место, скрытое за водопадами и отражениями. 
+Здесь маги постигают искусство потока, гибкости и ускользания. 
+Сила воды — в её терпении и непредсказуемости: сегодня это ручей, завтра — буря. 
+Тренировки направлены на исцеление, защиту и управление эмоциями.`,
+                    zones: [],
+                    showCombatActions: true,
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    }
+                },
+                'mage-hall': {
+                    title: 'Зал Магов',
+                    description: `Зал Магов — древняя библиотека и лаборатория в одном. 
+Тут изучают тайны стихий, чертят круги, шепчут формулы и вызывают силу из других миров. 
+Каждый ученик — будущий Архимаг, если переживёт ошибки первых заклинаний.`,
+                    zones: [],
+                    showCombatActions: true,
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    }
+                },
+                'noob-hall': {
+                    title: 'Зал Новичков',
+                    description: `Зал Новичков — первая остановка на пути к великому. 
+Здесь обучают азам боя, магии и выживания. 
+Наставники терпеливы, ошибки прощаются, но уроки запоминаются навсегда. 
+Это место, где каждый начинает как ученик, но мечтает стать героем.`,
+                    zones: [],
+                    showCombatActions: true,
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    }
+                },
+                'earth-hall': {
+                    title: 'Зал Земли',
+                    description: `Зал Земли — величественное и надёжное место, вырубленное в недрах скалы. 
+Толстые колонны, каменные плиты и древние символы создают атмосферу силы и устойчивости. 
+Мастера земли учатся быть несокрушимыми: защищать, укреплять и наносить удары с мощью гор.`,
+                    zones: [],
+                    showCombatActions: true,
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    }
+                },
+                'light-hall': {
+                    title: 'Зал Света',
+                    description: `Зал Света — священное место, наполненное сиянием, где маги света черпают силу из истины и веры. 
+Здесь лечат раны, рассеивают тьму и укрепляют союзников. 
+Свет — не только защита, но и орудие правосудия. 
+Тренировки проходят в тишине, среди колонн, залитых мягким сиянием.`,
+                    zones: [],
+                    showCombatActions: true,
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    }
+                },
+                'wind-hall': {
+                    title: 'Зал Воздуха',
+                    description: `Зал Воздуха — это открытая платформа среди облаков, где ветер всегда в движении. 
+Мастера воздуха учатся скорости, ловкости и манёвренности. 
+Здесь каждое движение точно, каждое заклинание — как порыв урагана. 
+Лёгкость и свобода — главные принципы этого зала.`,
+                    zones: [],
+                    showCombatActions: true,
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    }
+                },
+                'dark-hall': {
+                    title: 'Зал Тьмы',
+                    description: `Зал Тьмы — скрытая и зловещая обитель, где реальность переплетается с тенями. 
+Здесь изучают обман, проклятия и силу страхов. 
+Тьма даёт власть тем, кто осмелится её контролировать. 
+В этом зале всё зыбко, и никто не знает, кто тренируется рядом.`,
+                    zones: [],
+                    showCombatActions: true,
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    }
+                },
+                'market': {
+                    title: 'Каттегат',
+                    description: `Каттегат — древнее прибрежное поселение, сердце северных земель и оплот могущества викингов. 
+                                    Здесь грохот прибоя сливается с боевыми кличами, а запах морской соли перемешан с дымом от кузниц и очагов. 
+                                    Каттегат не просто дом — это священное место, где решается судьба воинов и магов, плетутся интриги и заключаются союзы. 
+                                    Со временем из рыбацкой деревушки он превратился в оживлённый центр торговли и ремесел, став столицей растущего королевства.`,
+                    zones: [
+                        {name: 'Медовый Зал', icon: ''},
+                        {name: 'Оружейная Лавка', icon: ''},
+                        {name: 'Торговая Ярмарка', icon: ''},
+                        {name: 'Кузница Мастеров', icon: ''},
+                        {name: 'Лотерейный Киоск', icon: ''},
+                        {name: 'Школа Навыков', icon: ''}
+                    ],
+                    showCombatActions: false
+                },
+                'street': {
+                    title: 'Переулок',
+                    description: `Переулок — центральная улица Каттегата, где сосредоточена власть и порядок. 
+Здесь возвышаются административные здания, охраняемые стражей, и проходят важнейшие решения, от которых зависит жизнь всего города. 
+Каменные фасады, строгие вывески и торопливые шаги чиновников создают атмосферу серьёзности и дисциплины. 
+Это место, где простые слова превращаются в приказы, а бумага — в судьбу.`,
+                    zones: [
+                        {name: 'Святые Воды', icon: ''},
+                        {name: 'Почтовый павелион', icon: ''},
+                        {name: 'Банк-Вира', icon: ''},
+                        {name: 'Длинный Дом', icon: ''},
+                        {name: 'Дом Знахаря', icon: ''},
+                        {name: 'Хижина Провидца', icon: ''}
+                    ],
+                    compass: {
+                        top: false,
+                        left: false,
+                        right: false,
+                        bottom: {text: 'Каттегат', location: 'market'}
+                    },
+                    showCombatActions: false
+                },
+                'outskirts': {
+                    title: 'Внешние Земли',
+                    description: `Внешние Земли — суровая и непредсказуемая территория за пределами городских стен. 
+Это граница между цивилизацией и дикой природой, где законы Каттегата теряют силу, а выживание зависит от силы, ловкости и удачи. 
+Здесь скрываются тайные тропы, древние руины, опасные твари и неведомые племена. 
+Каждый шаг вглубь — это вызов, но и шанс найти сокровища, знания или славу.`,
+                    zones: [
+                        {name: 'Охотничий Лес', icon: ''},
+                        {name: 'Подземный Мир', icon: ''}
+                    ],
+                    compass: {
+                        top: false,
+                        left: {text: 'Каттегат', location: 'market'},
+                        right: false,
+                        bottom: false
+                    },
+                    showCombatActions: false
+                },
+                'suburb': {
+                    title: 'Пригород',
+                    description: `Пригород — тихое и мирное место за пределами шумного Каттегата. 
+Здесь живут ремесленники, фермеры и путешественники, ищущие покоя вдали от городской суеты. 
+Воздух наполнен ароматом свежей травы и дымом от печей, а на узких улочках звучит детский смех и звон кузнечных молотов. 
+Это место, где начинается путь к великому, но всё ещё сохраняется простота жизни.`,
+                    zones: [
+                        {name: 'Источник', icon: ''},
+                        {name: 'Храм', icon: ''},
+                        {name: 'Рудник', icon: ''},
+                        {name: 'Гильдия Наёмников', icon: ''}
+                    ],
+                    compass: {
+                        top: {text: 'Каттегат', location: 'market'},
+                        left: false,
+                        right: false,
+                        bottom: false
+                    },
+                    showCombatActions: false
+                }
+            };
+
+            // Сохранение текущей локации
+            function saveLocation() {
+                if (currentLocation) {
+                    localStorage.setItem('playerLocation', currentLocation);
+                }
+            }
+
+            // Загрузка сохраненной локации
+            function loadLocation() {
+                return localStorage.getItem('playerLocation') || 'market';
+            }
+
+            // Обновление боевых действий
+            function updateCombatActions(isInHall) {
+                const marketBtn = document.querySelector('.combat-top .nav-container[data-location="market"]');
+                const monsterBtn = document.querySelector('.combat-top .nav-container[data-action="monster-fight"]');
+                const arenaBtn = document.querySelector('.combat-top .nav-container[data-action="arena"]');
+                
+                marketBtn.classList.remove('hidden');
+                monsterBtn.classList.toggle('hidden', !isInHall);
+                arenaBtn.classList.toggle('hidden', !isInHall);
+            
+                // Всегда показываем кнопку торговой
+                marketBtn.classList.remove('hidden');
+
+                // Показываем кнопки боя только если мы в конкретном зале (не в общем "боевые залы")
+                const showCombatButtons = isInHall && !currentLocation.includes('combat-hall');
+                monsterBtn.classList.toggle('hidden', !showCombatButtons);
+                arenaBtn.classList.toggle('hidden', !showCombatButtons);
+            }
+
+            // Создание боевой сетки
+            function createCombatGrid() {
+                const grid = document.getElementById('combat-grid');
+                grid.innerHTML = '';
+                
+                imageCellsConfig.forEach(cellConfig => {
+                    const cell = document.createElement('div');
+                    cell.className = 'combat-cell has-image';
+                    cell.setAttribute('data-zone', cellConfig.zone);
+                    cell.style.setProperty('--skill-image', `url('${cellConfig.image}')`);
+                    
+                    // Добавляем класс active, если это текущая локация
+                    if (cellConfig.zone === currentLocation) {
+                        cell.classList.add('active');
+                    }
+                    
+                    cell.addEventListener('click', () => {
+                        renderLocation(cellConfig.zone);
+                    });
+                    
+                    grid.appendChild(cell);
+                });
+            }
+
+            // Добавляем стили для псевдоэлементов
+            const style = document.createElement('style');
+            style.textContent = `
+                .combat-cell.has-image::after {
+                    background-image: var(--skill-image);
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Функция для обновления компаса в зависимости от локации
+            function updateCompass(locationId) {
+                const isInHall = locationId.includes('-hall');
+                
+                if (isInHall || locationId === 'combat-hall') {
+                    document.getElementById('compass-container').classList.add('hidden');
+                    document.getElementById('combat-compass').classList.remove('hidden');
+                    createCombatGrid();
+                    updateCombatActions(isInHall);
+                    return;
+                } else {
+                    document.getElementById('compass-container').classList.remove('hidden');
+                    document.getElementById('combat-compass').classList.add('hidden');
+                }
+                
+                const compassConfig = locations[locationId]?.compass;
+                const directions = ['top', 'left', 'right', 'bottom'];
+                
+                directions.forEach(dir => {
+                    const button = document.getElementById(`${dir}-button`);
+                    const navContainer = button.querySelector('.nav-container');
+                    
+                    if (compassConfig?.[dir]) {
+                        button.classList.remove('hidden');
+                        navContainer.textContent = compassConfig[dir].text;
+                        navContainer.setAttribute('data-location', compassConfig[dir].location);
+                    } else if (compassConfig) {
+                        button.classList.add('hidden');
+                    } else {
+                        button.classList.remove('hidden');
+                        const defaultText = {
+                            'top': 'Переулок',
+                            'left': 'Хольмганг',
+                            'right': 'Внешние Земли',
+                            'bottom': 'Пригород'
+                        };
+                        navContainer.textContent = defaultText[dir];
+                        navContainer.setAttribute('data-location', dir === 'top' ? 'street' : 
+                                                          dir === 'left' ? 'combat-hall' :
+                                                          dir === 'right' ? 'outskirts' : 'suburb');
+                    }
+                });
+            }
+
+            // Функция отрисовки локации
+            function renderLocation(locationId, isInitialLoad = false) {
+                if (moveInProgress) return;
+                
+                const location = locations[locationId];
+                if (!location) return;
+                
+                // Если пытаемся перейти в текущую локацию - ничего не делаем
+                if (locationId === currentLocation) return;
+                
+                if (isInitialLoad || locationId === currentLocation) {
+                    // Для первоначальной загрузки или перехода в текущую локацию - без задержки
+                    currentLocation = locationId;
+                    
+                    // Обновляем информацию в main_panel
+                    if (window.parent && window.parent.document) {
+                        const mainPanel = window.parent.document;
+                        mainPanel.getElementById('location-name').textContent = location.title;
+                        mainPanel.getElementById('location-description').textContent = location.description;
+                        
+                        // Загрузка изображения локации
+                        const img = new Image();
+                        img.src = `/static/img/locations/${locationId}.jpg`;
+                        img.onload = function() {
+                            mainPanel.getElementById('location-image').src = img.src;
+                        };
+                        img.onerror = function() {
+                            mainPanel.getElementById('location-image').src = '/static/img/default-location.jpg';
+                        };
+                    }
+                    
+                    // Обновляем компас
+                    updateCompass(locationId);
+                    
+                    // Заполняем additional-container зонами текущей локации
+                    const additionalContainer = document.getElementById('additional-container');
+                    additionalContainer.innerHTML = '';
+                    
+                    location.zones.forEach(zone => {
+                        const zoneElement = document.createElement('div');
+                        zoneElement.className = 'additional-row';
+                        zoneElement.textContent = `${zone.icon} ${zone.name}`;
+                        zoneElement.addEventListener('click', function() {
+                            enterZone(zone.name);
+                        });
+                        additionalContainer.appendChild(zoneElement);
+                    });
+                    
+                    // Пересоздаем сетку, чтобы обновить активное состояние
+                    if (locationId.includes('-hall')) {
+                        createCombatGrid();
+                    }
+                    
+                    saveLocation();
+                } else {
+                    // Для ручных переходов в другие локации - с задержкой
+                    moveInProgress = true;
+                    
+                    const moveIndicator = window.parent.showMoveIndicator(3, () => {
+                        currentLocation = locationId;
+                        
+                        // Обновляем информацию в main_panel
+                        if (window.parent && window.parent.document) {
+                            const mainPanel = window.parent.document;
+                            mainPanel.getElementById('location-name').textContent = location.title;
+                            mainPanel.getElementById('location-description').textContent = location.description;
+                            
+                            // Загрузка изображения локации
+                            const img = new Image();
+                            img.src = `/static/img/locations/${locationId}.jpg`;
+                            img.onload = function() {
+                                mainPanel.getElementById('location-image').src = img.src;
+                            };
+                            img.onerror = function() {
+                                mainPanel.getElementById('location-image').src = '/static/img/default-location.jpg';
+                            };
+                        }
+                        
+                        // Обновляем компас
+                        updateCompass(locationId);
+                        
+                        // Заполняем additional-container зонами текущей локации
+                        const additionalContainer = document.getElementById('additional-container');
+                        additionalContainer.innerHTML = '';
+                        
+                        location.zones.forEach(zone => {
+                            const zoneElement = document.createElement('div');
+                            zoneElement.className = 'additional-row';
+                            zoneElement.textContent = `${zone.icon} ${zone.name}`;
+                            zoneElement.addEventListener('click', function() {
+                                enterZone(zone.name);
+                            });
+                            additionalContainer.appendChild(zoneElement);
+                        });
+                        
+                        // Пересоздаем сетку, чтобы обновить активное состояние
+                        if (locationId.includes('-hall')) {
+                            createCombatGrid();
+                        }
+                        
+                        saveLocation();
+                        moveInProgress = false;
+                    });
+
+                    if (window.parent && window.parent.document) {
+                        window.parent.document.getElementById('cancel-move-btn').onclick = function() {
+                            moveIndicator.cancel();
+                            moveInProgress = false;
+                        };
+                    }
+                }
+            }
+
+            function enterZone(zoneName) {
+                if (zoneName === 'Оружейная Лавка') {
+                    // Если это магазин, открываем панель магазина
+                    if (window.parent && window.parent.toggleShopPanel) {
+                        window.parent.toggleShopPanel();
+                    }
+                } else if (zoneName === 'Медовый Зал') {
+                    // Если это таверна, открываем панель таверны
+                    if (window.parent && window.parent.toggleTavernPanel) {
+                        window.parent.toggleTavernPanel();
+                    }
+                } else if (zoneName === 'Банк-Вира') {
+
+                    if (window.parent && window.parent.toggleBankPanel) {
+                        window.parent.toggleBankPanel();
+                    }
+                } else {
+                    alert(`Вы вошли в зону: ${zoneName}`);
+                }
+            }
+
+            // Функция для боя с монстром
+            function startMonsterFight() {
+                alert('Начинаем бой с монстром!');
+            }
+
+            // Функция для арены
+            function startArena() {
+                // Открываем панель арены через родительское окно
+                if (window.parent && window.parent.toggleArenaPanel) {
+                    window.parent.toggleArenaPanel();
+                }
+            }
+
+            // Инициализация обработчиков событий
+            function initEventListeners() {
+                // Обработчики для основного компаса
+                document.querySelectorAll('#compass-container .nav-container').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const locationId = this.getAttribute('data-location');
+                        renderLocation(locationId);
+                    });
+                });
+                
+                // Обработчики для боевого компаса
+                document.querySelector('#combat-compass .combat-top .nav-container[data-location]').addEventListener('click', function() {
+                    const locationId = this.getAttribute('data-location');
+                    renderLocation(locationId);
+                });
+                
+                const monsterFightBtn = document.querySelector('#combat-compass [data-action="monster-fight"]');
+                const arenaBtn = document.querySelector('#combat-compass [data-action="arena"]');
+                
+                if (monsterFightBtn) {
+                    monsterFightBtn.addEventListener('click', startMonsterFight);
+                }
+                
+                if (arenaBtn) {
+                    arenaBtn.addEventListener('click', startArena);
+                }
+            }
+
+            // Инициализация при загрузке
+            document.addEventListener('DOMContentLoaded', function() {
+                initEventListeners();
+                renderLocation(loadLocation(), true); // Передаем true для первоначальной загрузки
+            });
+        })();
+    </script>
+</body>
+</html>

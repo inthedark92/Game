@@ -1,0 +1,562 @@
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/game_home.css' %}">
+{% endblock %}
+
+<div class="top-image"></div>
+
+<!-- 1. top_panel -->
+<div class="top-panel">
+    {% include 'frames/top_panel.html' %}
+</div>
+
+<div class="resizable-container">
+    <div class="content-area">
+        <!-- Основной контент -->
+        <div class="main-panel">
+            {% include 'frames/main_panel.html' %}
+        </div>
+        <div class="location-panel">
+            {% include 'frames/location_panel.html' %}
+        </div>
+    </div>
+</div>
+
+<!-- Все модальные панели -->
+<div class="cp-character-frame" id="character-frame">
+    <button class="cp-close-character-frame" id="close-character-frame">×</button>
+    <div class="cp-character-frame-content">
+        {% include 'frames/character_panel.html' %}
+    </div>
+</div>
+
+<div class="inventory-frame" id="inventory-frame">
+    <button class="close-inventory-frame" id="close-inventory-frame">×</button>
+    <div class="inventory-frame-content">
+        {% include 'frames/inventory_panel.html' %}
+    </div>
+</div>
+            
+<!-- Панель магазина -->
+<div class="shop-frame" id="shop-frame">
+    <button class="close-shop-frame" id="close-shop-frame">×</button>
+    <div class="shop-frame-content">
+        {% include 'frames/shop_panel.html' %}
+    </div>
+</div>
+
+<!-- Панель клана -->
+<div class="clan-frame" id="clan-frame">
+    <button class="close-clan-frame" id="close-clan-frame">×</button>
+    <div class="clan-frame-content">
+        {% include 'frames/clan_panel.html' %}
+    </div>
+</div>
+
+<!-- Панель админа -->
+<div class="admin-frame" id="admin-frame">
+    <button class="close-admin-frame" id="close-admin-frame">×</button>
+    <div class="admin-frame-content">
+        {% include 'frames/admin_panel.html' %}
+    </div>
+</div>
+
+<!-- Панель таверны -->
+<div class="tavern-frame" id="tavern-frame">
+    <button class="close-tavern-frame" id="close-tavern-frame">×</button>
+    <div class="tavern-frame-content">
+        {% include 'frames/tavern_panel.html' %}
+    </div>
+</div>
+
+<!-- Панель арены -->
+<div class="arena-frame" id="arena-frame">
+    <button class="close-arena-frame" id="close-arena-frame">×</button>
+    <div class="arena-frame-content">
+        {% include 'frames/arena_panel.html' %}
+    </div>
+</div>
+
+<!-- Панель торгов -->
+<div class="trade-frame" id="trade-frame">
+    <button class="close-trade-frame" id="close-trade-frame">×</button>
+    <div class="trade-frame-content">
+        {% include 'frames/trade_panel.html' %}
+    </div>
+</div>
+
+<!-- Панель банка -->
+<div class="bank-frame" id="bank-frame">
+    <button class="close-bank-frame" id="close-bank-frame">×</button>
+    <div class="bank-frame-content">
+        {% include 'frames/bank_panel.html' %}
+    </div>
+</div>
+            
+<!-- Чат и онлайн-панель -->
+<div class="chat-section" id="chat-section">
+    <div class="resize-handle"></div>
+    <div class="chat-container">
+        {% include 'frames/chat_panel.html' %}
+    </div>
+    <div class="online-panel">
+        {% include 'frames/online_panel.html' %}
+    </div>
+</div>
+
+    <script>
+        function toggleClanPanel() {
+            const clanFrame = document.getElementById('clan-frame');
+            const charFrame = document.getElementById('character-frame');
+            const invFrame = document.getElementById('inventory-frame');
+            const shopFrame = document.getElementById('shop-frame');
+            const tavernFrame = document.getElementById('tavern-frame');
+            const arenaFrame = document.getElementById('arena-frame');
+            const bankFrame = document.getElementById('bank-frame');
+            const adminFrame = document.getElementById('admin-frame');
+            const tradeFrame = document.getElementById('trade-frame');
+            
+            if (clanFrame.style.display === 'none' || !clanFrame.style.display) {
+                clanFrame.style.display = 'block';
+                charFrame.style.display = 'none';
+                invFrame.style.display = 'none';
+                shopFrame.style.display = 'none';
+                tavernFrame.style.display = 'none';
+                arenaFrame.style.display = 'none';
+                bankFrame.style.display = 'none';
+                adminFrame.style.display = 'none';
+                tradeFrame.style.display = 'none';
+                localStorage.setItem('clanPanelOpen', 'true');
+                localStorage.setItem('characterPanelOpen', 'false');
+                localStorage.setItem('inventoryPanelOpen', 'false');
+                localStorage.setItem('shopPanelOpen', 'false');
+                localStorage.setItem('tavernPanelOpen', 'false');
+                localStorage.setItem('arenaPanelOpen', 'false');
+                localStorage.setItem('bankPanelOpen', 'false');
+                localStorage.setItem('adminPanelOpen', 'false');
+                localStorage.setItem('tradePanelOpen', 'false');
+            } else {
+                clanFrame.style.display = 'none';
+                localStorage.setItem('clanPanelOpen', 'false');
+            }
+        }
+
+        function toggleBankPanel() {
+            const tavernFrame = document.getElementById('tavern-frame');
+            const charFrame = document.getElementById('character-frame');
+            const invFrame = document.getElementById('inventory-frame');
+            const shopFrame = document.getElementById('shop-frame');
+            const arenaFrame = document.getElementById('arena-frame');
+            const bankFrame = document.getElementById('bank-frame');
+            const clanFrame = document.getElementById('clan-frame');
+            const adminFrame = document.getElementById('admin-frame');
+            const tradeFrame = document.getElementById('trade-frame');
+            
+            if (bankFrame.style.display === 'none' || !bankFrame.style.display) {
+                bankFrame.style.display = 'block';
+                charFrame.style.display = 'none';
+                invFrame.style.display = 'none';
+                shopFrame.style.display = 'none';
+                tavernFrame.style.display = 'none';
+                arenaFrame.style.display = 'none';
+                clanFrame.style.display = 'none';
+                adminFrame.style.display = 'none';
+                tradeFrame.style.display = 'none';
+                localStorage.setItem('bankPanelOpen', 'true');
+                localStorage.setItem('characterPanelOpen', 'false');
+                localStorage.setItem('inventoryPanelOpen', 'false');
+                localStorage.setItem('shopPanelOpen', 'false');
+                localStorage.setItem('tavernPanelOpen', 'false');
+                localStorage.setItem('arenaPanelOpen', 'false');
+                localStorage.setItem('clanPanelOpen', 'false');
+                localStorage.setItem('adminPanelOpen', 'false');
+                localStorage.setItem('tradePanelOpen', 'false');
+            } else {
+                bankFrame.style.display = 'none';
+                localStorage.setItem('bankPanelOpen', 'false');
+            }
+        }
+            
+        function toggleShopPanel() {
+            const tavernFrame = document.getElementById('tavern-frame');
+            const charFrame = document.getElementById('character-frame');
+            const invFrame = document.getElementById('inventory-frame');
+            const shopFrame = document.getElementById('shop-frame');
+            const arenaFrame = document.getElementById('arena-frame');
+            const clanFrame = document.getElementById('clan-frame');
+            const bankFrame = document.getElementById('bank-frame');
+            const adminFrame = document.getElementById('admin-frame');
+            const tradeFrame = document.getElementById('trade-frame');
+            
+            if (shopFrame.style.display === 'none' || !shopFrame.style.display) {
+                shopFrame.style.display = 'block';
+                charFrame.style.display = 'none';
+                invFrame.style.display = 'none';
+                tavernFrame.style.display = 'none';
+                arenaFrame.style.display = 'none';
+                clanFrame.style.display = 'none';
+                bankFrame.style.display = 'none';
+                adminFrame.style.display = 'none';
+                tradeFrame.style.display = 'none';
+                localStorage.setItem('shopPanelOpen', 'true');
+                localStorage.setItem('characterPanelOpen', 'false');
+                localStorage.setItem('inventoryPanelOpen', 'false');
+                localStorage.setItem('tavernPanelOpen', 'false');
+                localStorage.setItem('arenaPanelOpen', 'false');
+                localStorage.setItem('clanPanelOpen', 'false');
+                localStorage.setItem('bankPanelOpen', 'false');
+                localStorage.setItem('adminPanelOpen', 'false');
+                localStorage.setItem('tradePanelOpen', 'false');
+            } else {
+                shopFrame.style.display = 'none';
+                localStorage.setItem('shopPanelOpen', 'false');
+            }
+        }
+
+        function toggleTavernPanel() {
+            const tavernFrame = document.getElementById('tavern-frame');
+            const charFrame = document.getElementById('character-frame');
+            const invFrame = document.getElementById('inventory-frame');
+            const shopFrame = document.getElementById('shop-frame');
+            const arenaFrame = document.getElementById('arena-frame');
+            const clanFrame = document.getElementById('clan-frame');
+            const bankFrame = document.getElementById('bank-frame');
+            const adminFrame = document.getElementById('admin-frame');
+            const tradeFrame = document.getElementById('trade-frame');
+            
+            if (tavernFrame.style.display === 'none' || !tavernFrame.style.display) {
+                tavernFrame.style.display = 'block';
+                charFrame.style.display = 'none';
+                invFrame.style.display = 'none';
+                shopFrame.style.display = 'none';
+                arenaFrame.style.display = 'none';
+                clanFrame.style.display = 'none';
+                bankFrame.style.display = 'none';
+                adminFrame.style.display = 'none';
+                tradeFrame.style.display = 'none';
+                localStorage.setItem('tavernPanelOpen', 'true');
+                localStorage.setItem('characterPanelOpen', 'false');
+                localStorage.setItem('inventoryPanelOpen', 'false');
+                localStorage.setItem('shopPanelOpen', 'false');
+                localStorage.setItem('arenaPanelOpen', 'false');
+                localStorage.setItem('clanPanelOpen', 'false');
+                localStorage.setItem('bankPanelOpen', 'false');
+                localStorage.setItem('adminPanelOpen', 'false');
+                localStorage.setItem('tradePanelOpen', 'false');
+            } else {
+                tavernFrame.style.display = 'none';
+                localStorage.setItem('tavernPanelOpen', 'false');
+            }
+        }
+
+        function toggleArenaPanel() {
+            const tavernFrame = document.getElementById('tavern-frame');
+            const charFrame = document.getElementById('character-frame');
+            const invFrame = document.getElementById('inventory-frame');
+            const shopFrame = document.getElementById('shop-frame');
+            const arenaFrame = document.getElementById('arena-frame');
+            const clanFrame = document.getElementById('clan-frame');
+            const bankFrame = document.getElementById('bank-frame');
+            const adminFrame = document.getElementById('admin-frame');
+            const tradeFrame = document.getElementById('trade-frame');
+            
+            if (arenaFrame.style.display === 'none' || !arenaFrame.style.display) {
+                arenaFrame.style.display = 'block';
+                charFrame.style.display = 'none';
+                invFrame.style.display = 'none';
+                shopFrame.style.display = 'none';
+                tavernFrame.style.display = 'none';
+                clanFrame.style.display = 'none';
+                bankFrame.style.display = 'none';
+                adminFrame.style.display = 'none';
+                tradeFrame.style.display = 'none';
+                localStorage.setItem('arenaPanelOpen', 'true');
+                localStorage.setItem('characterPanelOpen', 'false');
+                localStorage.setItem('inventoryPanelOpen', 'false');
+                localStorage.setItem('shopPanelOpen', 'false');
+                localStorage.setItem('tavernPanelOpen', 'false');
+                localStorage.setItem('clanPanelOpen', 'false');
+                localStorage.setItem('bankPanelOpen', 'false');
+                localStorage.setItem('adminPanelOpen', 'false');
+                localStorage.setItem('tradePanelOpen', 'false');
+            } else {
+                arenaFrame.style.display = 'none';
+                localStorage.setItem('arenaPanelOpen', 'false');
+            }
+        }
+
+        function toggleCharacterPanel() {
+            const charFrame = document.getElementById('character-frame');
+            const invFrame = document.getElementById('inventory-frame');
+            const shopFrame = document.getElementById('shop-frame');
+            const tavernFrame = document.getElementById('tavern-frame');
+            const arenaFrame = document.getElementById('arena-frame');
+            const clanFrame = document.getElementById('clan-frame');
+            const bankFrame = document.getElementById('bank-frame');
+            const adminFrame = document.getElementById('admin-frame');
+            const tradeFrame = document.getElementById('trade-frame');
+            
+            if (charFrame.style.display === 'none' || !charFrame.style.display) {
+                charFrame.style.display = 'block';
+                invFrame.style.display = 'none';
+                shopFrame.style.display = 'none';
+                tavernFrame.style.display = 'none';
+                arenaFrame.style.display = 'none';
+                clanFrame.style.display = 'none';
+                bankFrame.style.display = 'none';
+                adminFrame.style.display = 'none';
+                tradeFrame.style.display = 'none';
+                localStorage.setItem('characterPanelOpen', 'true');
+                localStorage.setItem('inventoryPanelOpen', 'false');
+                localStorage.setItem('shopPanelOpen', 'false');
+                localStorage.setItem('tavernPanelOpen', 'false');
+                localStorage.setItem('arenaPanelOpen', 'false');
+                localStorage.setItem('clanPanelOpen', 'false');
+                localStorage.setItem('bankPanelOpen', 'false');
+                localStorage.setItem('adminPanelOpen', 'false');
+                localStorage.setItem('tradePanelOpen', 'false');
+            } else {
+                charFrame.style.display = 'none';
+                localStorage.setItem('characterPanelOpen', 'false');
+            }
+        }
+
+        function toggleInventoryPanel() {
+            const charFrame = document.getElementById('character-frame');
+            const invFrame = document.getElementById('inventory-frame');
+            const shopFrame = document.getElementById('shop-frame');
+            const tavernFrame = document.getElementById('tavern-frame');
+            const arenaFrame = document.getElementById('arena-frame');
+            const clanFrame = document.getElementById('clan-frame');
+            const bankFrame = document.getElementById('bank-frame');
+            const adminFrame = document.getElementById('admin-frame');
+            const tradeFrame = document.getElementById('trade-frame');
+            
+            if (invFrame.style.display === 'none' || !invFrame.style.display) {
+                invFrame.style.display = 'block';
+                charFrame.style.display = 'none';
+                shopFrame.style.display = 'none';
+                tavernFrame.style.display = 'none';
+                arenaFrame.style.display = 'none';
+                clanFrame.style.display = 'none';
+                bankFrame.style.display = 'none';
+                adminFrame.style.display = 'none';
+                tradeFrame.style.display = 'none';
+                localStorage.setItem('inventoryPanelOpen', 'true');
+                localStorage.setItem('characterPanelOpen', 'false');
+                localStorage.setItem('shopPanelOpen', 'false');
+                localStorage.setItem('tavernPanelOpen', 'false');
+                localStorage.setItem('arenaPanelOpen', 'false');
+                localStorage.setItem('clanPanelOpen', 'false');
+                localStorage.setItem('bankPanelOpen', 'false');
+                localStorage.setItem('adminPanelOpen', 'false');
+                localStorage.setItem('tradePanelOpen', 'false');
+            } else {
+                invFrame.style.display = 'none';
+                localStorage.setItem('inventoryPanelOpen', 'false');
+            }
+        }
+
+        function toggleAdminPanel() {
+            const adminFrame = document.getElementById('admin-frame');
+            const charFrame = document.getElementById('character-frame');
+            const invFrame = document.getElementById('inventory-frame');
+            const shopFrame = document.getElementById('shop-frame');
+            const tavernFrame = document.getElementById('tavern-frame');
+            const arenaFrame = document.getElementById('arena-frame');
+            const clanFrame = document.getElementById('clan-frame');
+            const bankFrame = document.getElementById('bank-frame');
+            const tradeFrame = document.getElementById('trade-frame');
+            
+            if (adminFrame.style.display === 'none' || !adminFrame.style.display) {
+                adminFrame.style.display = 'block';
+                charFrame.style.display = 'none';
+                invFrame.style.display = 'none';
+                shopFrame.style.display = 'none';
+                tavernFrame.style.display = 'none';
+                arenaFrame.style.display = 'none';
+                clanFrame.style.display = 'none';
+                bankFrame.style.display = 'none';
+                tradeFrame.style.display = 'none';
+                localStorage.setItem('adminPanelOpen', 'true');
+                localStorage.setItem('characterPanelOpen', 'false');
+                localStorage.setItem('inventoryPanelOpen', 'false');
+                localStorage.setItem('shopPanelOpen', 'false');
+                localStorage.setItem('tavernPanelOpen', 'false');
+                localStorage.setItem('arenaPanelOpen', 'false');
+                localStorage.setItem('clanPanelOpen', 'false');
+                localStorage.setItem('bankPanelOpen', 'false');
+                localStorage.setItem('tradePanelOpen', 'false');
+            } else {
+                adminFrame.style.display = 'none';
+                localStorage.setItem('adminPanelOpen', 'false');
+            }
+        }
+
+        function toggleTradePanel() {
+            const tradeFrame = document.getElementById('trade-frame');
+            const charFrame = document.getElementById('character-frame');
+            const invFrame = document.getElementById('inventory-frame');
+            const shopFrame = document.getElementById('shop-frame');
+            const tavernFrame = document.getElementById('tavern-frame');
+            const arenaFrame = document.getElementById('arena-frame');
+            const clanFrame = document.getElementById('clan-frame');
+            const bankFrame = document.getElementById('bank-frame');
+            const adminFrame = document.getElementById('admin-frame');
+            
+            if (tradeFrame.style.display === 'none' || !tradeFrame.style.display) {
+                tradeFrame.style.display = 'block';
+                charFrame.style.display = 'none';
+                invFrame.style.display = 'none';
+                shopFrame.style.display = 'none';
+                tavernFrame.style.display = 'none';
+                arenaFrame.style.display = 'none';
+                clanFrame.style.display = 'none';
+                bankFrame.style.display = 'none';
+                adminFrame.style.display = 'none';
+                localStorage.setItem('tradePanelOpen', 'true');
+                localStorage.setItem('characterPanelOpen', 'false');
+                localStorage.setItem('inventoryPanelOpen', 'false');
+                localStorage.setItem('shopPanelOpen', 'false');
+                localStorage.setItem('tavernPanelOpen', 'false');
+                localStorage.setItem('arenaPanelOpen', 'false');
+                localStorage.setItem('clanPanelOpen', 'false');
+                localStorage.setItem('bankPanelOpen', 'false');
+                localStorage.setItem('adminPanelOpen', 'false');
+            } else {
+                tradeFrame.style.display = 'none';
+                localStorage.setItem('tradePanelOpen', 'false');
+            }
+        }
+
+        // Сделаем функции доступными глобально
+        window.toggleClanPanel = toggleClanPanel;
+        window.toggleBankPanel = toggleBankPanel;
+        window.toggleShopPanel = toggleShopPanel;
+        window.toggleTavernPanel = toggleTavernPanel;
+        window.toggleArenaPanel = toggleArenaPanel;
+        window.toggleCharacterPanel = toggleCharacterPanel;
+        window.toggleInventoryPanel = toggleInventoryPanel;
+        window.toggleAdminPanel = toggleAdminPanel;
+        window.toggleTradePanel = toggleTradePanel;
+
+        // Обработчики закрытия панелей
+        document.getElementById('close-bank-frame').addEventListener('click', function() {
+            document.getElementById('bank-frame').style.display = 'none';
+            localStorage.setItem('bankPanelOpen', 'false');
+        });
+
+        document.getElementById('close-shop-frame').addEventListener('click', function() {
+            document.getElementById('shop-frame').style.display = 'none';
+            localStorage.setItem('shopPanelOpen', 'false');
+        });
+        
+        document.getElementById('close-tavern-frame').addEventListener('click', function() {
+            document.getElementById('tavern-frame').style.display = 'none';
+            localStorage.setItem('tavernPanelOpen', 'false');
+        });
+
+        document.getElementById('close-arena-frame').addEventListener('click', function() {
+            document.getElementById('arena-frame').style.display = 'none';
+            localStorage.setItem('arenaPanelOpen', 'false');
+        });
+
+        document.getElementById('close-clan-frame').addEventListener('click', function() {
+            document.getElementById('clan-frame').style.display = 'none';
+            localStorage.setItem('clanPanelOpen', 'false');
+        });
+
+        document.getElementById('close-character-frame').addEventListener('click', function() {
+            document.getElementById('character-frame').style.display = 'none';
+            localStorage.setItem('characterPanelOpen', 'false');
+        });
+
+        document.getElementById('close-inventory-frame').addEventListener('click', function() {
+            document.getElementById('inventory-frame').style.display = 'none';
+            localStorage.setItem('inventoryPanelOpen', 'false');
+        });
+
+        document.getElementById('close-admin-frame').addEventListener('click', function() {
+            document.getElementById('admin-frame').style.display = 'none';
+            localStorage.setItem('adminPanelOpen', 'false');
+        });
+
+        document.getElementById('close-trade-frame').addEventListener('click', function() {
+            document.getElementById('trade-frame').style.display = 'none';
+            localStorage.setItem('tradePanelOpen', 'false');
+        });
+
+     // Восстановление состояния при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        const panels = [
+            'tavern', 'shop', 'character', 'inventory', 
+            'arena', 'bank', 'clan', 'admin', 'trade'
+        ];
+        
+        panels.forEach(panel => {
+            const isOpen = localStorage.getItem(`${panel}PanelOpen`) === 'true';
+            if (isOpen) {
+                document.getElementById(`${panel}-frame`).style.display = 'block';
+            }
+        });
+
+        // Восстановление высоты чата
+        const savedHeight = localStorage.getItem('chatSectionHeight');
+        if (savedHeight) {
+            document.getElementById('chat-section').style.height = savedHeight + 'px';
+        }
+    });
+
+        // Обработка изменения размера чата
+        const resizeHandle = document.querySelector('.resize-handle');
+        const chatSection = document.getElementById('chat-section');
+        
+        let isResizing = false;
+        let startY, startHeight;
+        
+        resizeHandle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = parseInt(document.defaultView.getComputedStyle(chatSection).height, 10);
+            document.body.style.cursor = 'row-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const dy = e.clientY - startY;
+            let newHeight = startHeight - dy;
+            
+            // Ограничиваем минимальную и максимальную высоту
+            newHeight = Math.max(100, newHeight);
+            newHeight = Math.min(window.innerHeight * 0.7, newHeight);
+            
+            chatSection.style.height = newHeight + 'px';
+        });
+        
+        document.addEventListener('mouseup', function() {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                
+                // Сохраняем текущую высоту в localStorage
+                const currentHeight = parseInt(chatSection.style.height, 10);
+                localStorage.setItem('chatSectionHeight', currentHeight);
+            }
+        });
+        
+        // Обработка изменения размера окна
+        window.addEventListener('resize', function() {
+            const savedHeight = localStorage.getItem('chatSectionHeight');
+            if (savedHeight) {
+                const maxHeight = window.innerHeight * 0.7;
+                const newHeight = Math.min(parseInt(savedHeight, 10), maxHeight);
+                chatSection.style.height = newHeight + 'px';
+            }
+        });
+    </script>
+    </body>

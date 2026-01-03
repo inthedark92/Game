@@ -1,0 +1,345 @@
+.tavern-body {
+    padding: 0;
+    background: transparent;
+    font-family: Arial, sans-serif;
+    color: #e9d6b5;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.tavern-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    gap: 15px;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.tavern-cart-column {
+    width: 250px;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid #8b5e3c;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+.tavern-item-icon img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.tavern-item-stock {
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 3px;
+}
+
+.tavern-items-column {
+    flex: 1;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid #8b5e3c;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-y: auto;
+    min-width: 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.tavern-filter-column {
+    width: 200px;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid #8b5e3c;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-y: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.tavern-filter-category {
+    margin-bottom: 15px;
+}
+
+.tavern-filter-category-header {
+    font-weight: bold;
+    margin-bottom: 5px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #8b5e3c;
+}
+
+.tavern-filter-item {
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-bottom: 2px;
+    font-size: 13px;
+}
+
+.tavern-filter-item:hover, .tavern-filter-item.active {
+    background: rgba(139, 94, 60, 0.4);
+}
+
+.tavern-column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #8b5e3c;
+    color: #e9d6b5;
+}
+
+.tavern-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(40, 40, 40, 0.7);
+    border: 1px solid #5c3c24;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.tavern-item:hover {
+    background: rgba(139, 94, 60, 0.4);
+    border-color: #e9d6b5;
+}
+
+.tavern-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #8b5e3c;
+}
+
+.tavern-item-name {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.tavern-item-quantity {
+    color: #a09070;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.tavern-item-sections-container {
+    display: flex;
+    gap: 10px;
+}
+
+.tavern-item-section {
+    flex: 1;
+    padding: 10px;
+    border-radius: 4px;
+    background: rgba(30, 30, 30, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.tavern-item-icon-section {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: rgba(139, 94, 60, 0.2);
+}
+
+.tavern-item-icon {
+    width: 60px;
+    height: 60px;
+    margin: 5px auto;
+    background: #333;
+    border: 1px solid #8b5e3c;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+}
+
+.tavern-item-price {
+    font-weight: bold;
+    margin-top: 5px;
+    color: #d4af37; /* золотой цвет */
+}
+
+.tavern-section-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #c0a070;
+    font-size: 13px;
+}
+
+.tavern-item-details {
+    line-height: 1.4;
+    font-size: 0.9em;
+}
+
+.tavern-item-controls-section {
+    justify-content: space-between;
+    gap: 5px;
+    background: rgba(40, 40, 40, 0.7);
+}
+
+.tavern-quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.tavern-quantity-input {
+    width: 50px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #8b5e3c;
+    color: #e9d6b5;
+    text-align: center;
+    padding: 3px;
+    border-radius: 3px;
+}
+
+.tavern-buy-button, .tavern-add-to-cart-button {
+    background: #5c3c24;
+    color: #e9d6b5;
+    border: none;
+    border-radius: 3px;
+    padding: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    font-size: 12px;
+}
+
+.tavern-buy-button:hover {
+    background: #8b5e3c;
+}
+
+.tavern-add-to-cart-button {
+    background: #3c5c24;
+}
+
+.tavern-add-to-cart-button:hover {
+    background: #5e8b3c;
+}
+
+.tavern-category-header {
+    background: rgba(139, 94, 60, 0.3);
+    padding: 5px 10px;
+    margin: 15px 0 10px 0;
+    border-left: 3px solid #e9d6b5;
+    font-size: 14px;
+}
+
+.tavern-cart-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #8b5e3c;
+}
+
+.tavern-cart-items {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.tavern-cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px dashed #8b5e3c;
+    font-size: 13px;
+}
+
+.tavern-cart-item-name {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.tavern-cart-item-quantity {
+    width: 30px;
+    text-align: center;
+}
+
+.tavern-cart-total {
+    font-weight: bold;
+    margin: 10px 0;
+    text-align: right;
+}
+
+.tavern-cart-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.tavern-cart-button {
+    flex: 1;
+    padding: 5px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tavern-checkout-button {
+    background: #3c5c24;
+    color: #e9d6b5;
+}
+
+.tavern-checkout-button:hover {
+    background: #5e8b3c;
+}
+
+.tavern-cancel-button {
+    background: #5c243c;
+    color: #e9d6b5;
+}
+
+.tavern-cancel-button:hover {
+    background: #8b3c5e;
+}
+
+
+.tavern-frame {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 25%;
+    z-index: 151;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #8b5e3c;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+}
+
+.tavern-frame-conten {
+    height: calc(100% - 40px);
+    overflow: auto;
+    padding: 20px;
+    color: #e9d6b5;
+}
+
+.close-tavern-frame {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #8b5e3c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 1001;
+}
