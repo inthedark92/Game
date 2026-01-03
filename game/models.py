@@ -801,3 +801,21 @@ class Transaction(models.Model):
     total = models.DecimalField(max_digits=15, decimal_places=2)
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    
+# Добавьте этот класс в конец game/models.py (после существующих моделей)
+from uuid import uuid4
+from django.conf import settings
+from django.db import models
+from django.utils import timezone
+
+class Combat(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                              on_delete=models.SET_NULL, related_name='combats')
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    state = models.JSONField(default=dict)  # хранит текущее состояние боя
+
+    def __str__(self):
+        return f"Combat {self.id} ({self.owner.username if self.owner else 'Anonymous'})"
