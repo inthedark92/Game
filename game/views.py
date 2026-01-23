@@ -257,7 +257,26 @@ def arena_panel(request):
 
 @login_required
 def clan_panel(request):
-    return render(request, 'clan_panel.html')
+    try:
+        player_profile = PlayerProfile.objects.get(user=request.user)
+        clan = player_profile.clan
+        if clan:
+            members = PlayerProfile.objects.filter(clan=clan)
+            storage_items = ClanStorageItem.objects.filter(clan=clan)
+            borrow_history = BorrowHistory.objects.filter(clan=clan).order_by('-borrow_date')
+            context = {
+                'clan': clan,
+                'members': members,
+                'storage_items': storage_items,
+                'borrow_history': borrow_history,
+                'player_profile': player_profile,
+            }
+        else:
+            context = {'clan': None}
+    except PlayerProfile.DoesNotExist:
+        context = {'clan': None}
+
+    return render(request, 'frames/clan_panel.html', context)
 
 @login_required
 @user_passes_test(is_admin)
