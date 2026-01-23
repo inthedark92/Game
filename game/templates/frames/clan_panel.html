@@ -4,23 +4,22 @@
 </head>
 <body>
     <div class="clan-container" id="main-clan-panel">
+        {% if clan %}
         <!-- Левая секция -->
         <div class="clan-left-section">
             <div class="clan-header">
-                <img src="{% static 'img/clan_logo.png' %}" alt="Клан значок">
-                <div class="clan-name">Название Клана</div>
+                <img src="{{ clan.logo.url }}" alt="Клан значок">
+                <div class="clan-name">{{ clan.name }}</div>
             </div>
 
             <div class="clan-members-count">
-                <strong>Игроков:</strong> 8 / 20
+                <strong>Игроков:</strong> {{ members|length }} / {{ clan.max_members }}
             </div>
 
             <div class="member-list">
-                <div class="member-item">Участник 1</div>
-                <div class="member-item">Участник 2</div>
-                <div class="member-item">Участник 3</div>
-                <div class="member-item">Участник 4</div>
-                <div class="member-item">Участник 5</div>
+                {% for member in members %}
+                <div class="member-item">{{ member.user.username }}</div>
+                {% endfor %}
             </div>
         </div>
 
@@ -32,16 +31,21 @@
 
             <div class="clan-info">
                 <div class="clan-description">
-                    <p><strong>Описание:</strong> Здесь находится описание клана, его цели, история и правила.</p>
+                    <p><strong>Описание:</strong> {{ clan.description }}</p>
                 </div>
-                <img src="{% static 'img/alliance_emblem.png' %}" alt="Эмблема альянса" class="clan-symbol">
+                {% if clan.alliance_emblem %}
+                <img src="{{ clan.alliance_emblem.url }}" alt="Эмблема альянса" class="clan-symbol">
+                {% endif %}
             </div>
 
             <div class="clan-legend">
                 <strong>Легенда клана:</strong><br>
-                Этот клан был основан древними воинами и ведёт свою историю с великих войн за мир.
+                {{ clan.legend }}
             </div>
         </div>
+        {% else %}
+        <p>Вы не состоите в клане.</p>
+        {% endif %}
     </div>
 
     <!-- Панель кланового склада (обновленная) -->

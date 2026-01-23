@@ -1,0 +1,10 @@
+Watching for file changes with StatReloader
+Forbidden (CSRF cookie not set.): /login/
+[23/Jan/2026 14:45:06] "POST /login/ HTTP/1.1" 403 2855
+[23/Jan/2026 14:45:06] "GET /game/clan/ HTTP/1.1" 302 0
+[23/Jan/2026 14:45:40] "GET /login/ HTTP/1.1" 200 21529
+[23/Jan/2026 14:45:41] "POST /login/ HTTP/1.1" 200 21837
+[23/Jan/2026 14:45:41] "GET /game/clan/ HTTP/1.1" 302 0
+[23/Jan/2026 14:46:23] "GET /game/arena/ HTTP/1.1" 302 0
+[23/Jan/2026 14:46:23] "GET /game/bank/ HTTP/1.1" 302 0
+[23/Jan/2026 14:46:23] "GET /game/trade/ HTTP/1.1" 302 0
