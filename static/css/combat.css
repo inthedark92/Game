@@ -1,48 +1,59 @@
-body {
-    background-color: #f0e6d2;
-    font-family: Arial, sans-serif;
+body.combat-page {
+    background-color: #d4d0c8;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 11px;
     margin: 0;
-    padding: 20px;
+    padding: 0;
 }
 
-.combat-wrapper {
-    max-width: 800px;
-    margin: 0 auto;
-    background: #fff;
-    padding: 20px;
-    border: 2px solid #8b4513;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+.combat-container {
+    width: 950px;
+    margin: 10px auto;
+    background-color: #f2f2f2;
+    border: 1px solid #999;
+    padding: 5px;
 }
 
-.combat-header {
+/* Header */
+.combat-top-panel {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    background-color: #e0e0e0;
+    border-bottom: 2px ridge #fff;
+    padding: 5px 10px;
+    margin-bottom: 10px;
 }
 
-.fighter {
-    width: 45%;
+.fighter-stats {
+    width: 350px;
 }
 
-.fighter .name {
+.fighter-stats .name {
     font-weight: bold;
-    font-size: 1.2em;
-    margin-bottom: 5px;
+    color: #000066;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
 }
 
-.hp-bar-container {
-    height: 20px;
-    background: #ddd;
+.info-icon {
+    width: 14px;
+    height: 14px;
+    margin-left: 5px;
+}
+
+.hp-container {
+    height: 12px;
+    background-color: #eee;
     border: 1px solid #000;
     position: relative;
 }
 
 .hp-bar {
     height: 100%;
-    background: #c00;
+    background-color: #bb0000;
     width: 100%;
-    transition: width 0.3s ease;
 }
 
 .hp-text {
@@ -50,98 +61,158 @@ body {
     width: 100%;
     text-align: center;
     top: 0;
-    left: 0;
-    line-height: 20px;
-    font-size: 12px;
+    font-size: 10px;
     color: #fff;
-    text-shadow: 1px 1px 1px #000;
-}
-
-.vs {
-    font-size: 2em;
     font-weight: bold;
-    color: #8b4513;
+    line-height: 12px;
 }
 
-.combat-body {
+.combat-title {
+    font-weight: bold;
+    font-size: 14px;
+    color: #800000;
+}
+
+/* Main Grid */
+.combat-main-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    gap: 10px;
+}
+
+.side-panel {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    align-items: center;
 }
 
-.controls {
-    flex: 1;
-    background: #fafafa;
-    padding: 15px;
-    border: 1px solid #ccc;
-}
-
-.zones-selection {
+.avatar-box {
+    border: 1px solid #999;
+    background-color: #fff;
+    width: 120px;
+    height: 220px;
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
 }
 
-.zones-selection h4 {
-    margin-top: 0;
+.avatar {
+    max-width: 100%;
+    max-height: 100%;
 }
 
-.zones-selection label {
+/* Equip slots imitation */
+.equip-slots-left, .equip-slots-right {
+    display: grid;
+    grid-template-columns: repeat(3, 32px);
+    gap: 2px;
+    margin-top: 5px;
+}
+
+.slot {
+    width: 32px;
+    height: 32px;
+    background-color: #ccc;
+    border: 1px inset #fff;
+}
+
+/* Center Panel */
+.center-panel {
+    background-color: #fff;
+    border: 1px solid #999;
+    padding: 10px;
+}
+
+.controls-box {
+    text-align: center;
+}
+
+.selection-columns {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.atk-selection, .def-selection {
+    text-align: left;
+}
+
+.selection-title {
+    font-weight: bold;
+    text-align: center;
+    background-color: #eee;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+    padding: 2px;
+}
+
+.selection-columns label {
     display: block;
     margin-bottom: 5px;
     cursor: pointer;
 }
 
-.action-buttons {
-    display: flex;
-    gap: 10px;
+.action-row {
+    margin-top: 20px;
 }
 
-.btn {
-    padding: 10px 20px;
-    font-size: 1.1em;
+.hit-button {
+    background-color: #d4d0c8;
+    border: 2px outset #fff;
+    padding: 2px 20px;
+    font-weight: bold;
     cursor: pointer;
-    background: #8b4513;
-    color: #fff;
-    border: none;
 }
 
-.btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+.hit-button:active {
+    border: 2px inset #fff;
 }
 
-.btn-secondary {
-    background: #666;
+.damage-counter {
+    margin-top: 20px;
+    font-weight: bold;
+    text-align: center;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
 }
 
-.log-container {
-    flex: 1;
+/* Footer & Log */
+.combat-footer {
+    margin-top: 10px;
+    border: 1px solid #999;
+    background-color: #fff;
 }
 
-.log {
-    height: 300px;
+.log-header {
+    background-color: #eee;
+    padding: 2px 5px;
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+    color: #000066;
+}
+
+.combat-log-content {
+    height: 150px;
     overflow-y: scroll;
-    border: 1px solid #ccc;
-    padding: 10px;
-    background: #fff;
-    font-size: 0.9em;
+    padding: 5px;
+    font-family: "Courier New", Courier, monospace;
 }
 
 .log-entry {
-    margin-bottom: 5px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 2px;
+    margin-bottom: 2px;
+    border-bottom: 1px dotted #ccc;
 }
 
 /* Modal */
 .modal {
     position: fixed;
-    z-index: 100;
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.7);
+    background-color: rgba(0,0,0,0.5);
 }
 
 .modal-content {
@@ -151,10 +222,4 @@ body {
     border: 1px solid #888;
     width: 300px;
     text-align: center;
-}
-
-.modal-content button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    cursor: pointer;
 }

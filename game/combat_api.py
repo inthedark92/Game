@@ -41,17 +41,17 @@ def api_combat_turn(request, combat_id):
     """
     POST /api/combat/<combat_id>/turn
     Обработка хода игрока
-    Тело: {"attack_zone": 1, "defense_zones": [1, 2]}
+    Тело: {"attack_zone": 1, "defense_block": 1}
     """
     try:
         data = json.loads(request.body)
         attack_zone = int(data.get('attack_zone'))
-        defense_zones = [int(z) for z in data.get('defense_zones', [])]
+        defense_block = int(data.get('defense_block'))
     except (json.JSONDecodeError, ValueError, TypeError):
         return HttpResponseBadRequest("Invalid input data")
 
-    if not attack_zone or len(defense_zones) != 2:
-        return JsonResponse({"error": "Выберите 1 зону атаки и 2 зоны защиты"}, status=400)
+    if not attack_zone or not defense_block:
+        return JsonResponse({"error": "Выберите зону атаки и блок защиты"}, status=400)
 
     try:
         with transaction.atomic():
@@ -62,7 +62,7 @@ def api_combat_turn(request, combat_id):
                 return JsonResponse({"combat_id": str(combat_obj.id), "state": state, "message": "Бой уже завершен"})
 
             # Обработка хода
-            new_state = handle_player_turn(state, attack_zone, defense_zones)
+            new_state = handle_player_turn(state, attack_zone, defense_block)
 
             # Если бой завершился на этом ходу
             message = ""

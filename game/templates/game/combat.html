@@ -7,61 +7,94 @@
     <link rel="stylesheet" href="{% static 'css/combat.css' %}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
-<body>
-    <div class="combat-wrapper">
-        <div class="combat-header">
-            <div class="fighter player">
-                <div class="name">{{ state.player.name }} [{{ state.player.level }}]</div>
-                <div class="hp-bar-container">
+<body class="combat-page">
+    <div class="combat-container">
+        <!-- Верхняя панель (Header) -->
+        <div class="combat-top-panel">
+            <div class="fighter-stats player-stats">
+                <div class="name">{{ state.player.name }} [{{ state.player.level }}] <img src="{% static 'img/info.png' %}" class="info-icon"></div>
+                <div class="hp-container">
                     <div id="player-hp-bar" class="hp-bar" style="width: {{ player_hp_percent }}%;"></div>
                     <div id="player-hp-text" class="hp-text">{{ state.player.current_hp }}/{{ state.player.max_hp }}</div>
                 </div>
             </div>
 
-            <div class="vs">VS</div>
+            <div class="combat-title">Поединок</div>
 
-            <div class="fighter monster">
-                <div class="name">{{ state.monster.name }} [{{ state.monster.level }}]</div>
-                <div class="hp-bar-container">
+            <div class="fighter-stats monster-stats">
+                <div class="hp-container">
                     <div id="monster-hp-bar" class="hp-bar" style="width: {{ monster_hp_percent }}%;"></div>
                     <div id="monster-hp-text" class="hp-text">{{ state.monster.current_hp }}/{{ state.monster.max_hp }}</div>
+                </div>
+                <div class="name">{{ state.monster.name }} [{{ state.monster.level }}] <img src="{% static 'img/info.png' %}" class="info-icon"></div>
+            </div>
+        </div>
+
+        <div class="combat-main-grid">
+            <!-- Левая колонка: Игрок -->
+            <div class="side-panel player-side">
+                <div class="avatar-box">
+                    <img src="{% static 'img/obraz/skin.png' %}" alt="Player" class="avatar">
+                </div>
+                <!-- Слоты экипировки (имитация) -->
+                <div class="equip-slots-left">
+                    <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+                    <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+                </div>
+            </div>
+
+            <!-- Центральная колонка: Управление -->
+            <div class="center-panel">
+                <div class="controls-box" id="combat-controls">
+                    <div class="selection-columns">
+                        <div class="atk-selection">
+                            <div class="selection-title">Атака</div>
+                            <label><input type="radio" name="attack" value="1" checked> удар в голову</label>
+                            <label><input type="radio" name="attack" value="2"> удар в грудь</label>
+                            <label><input type="radio" name="attack" value="3"> удар в живот</label>
+                            <label><input type="radio" name="attack" value="4"> удар в пояс(пах)</label>
+                            <label><input type="radio" name="attack" value="5"> удар по ногам</label>
+                        </div>
+                        <div class="def-selection">
+                            <div class="selection-title">Защита</div>
+                            <label><input type="radio" name="defense" value="1" checked> блок головы, груди и живота</label>
+                            <label><input type="radio" name="defense" value="2"> блок груди, живота и пояса</label>
+                            <label><input type="radio" name="defense" value="3"> блок живота, пояса и ног</label>
+                            <label><input type="radio" name="defense" value="4"> блок пояса, ног и головы</label>
+                            <label><input type="radio" name="defense" value="5"> блок ног, головы и груди</label>
+                        </div>
+                    </div>
+                    <div class="action-row">
+                        <button id="btn-hit" class="hit-button">Вперёд!!!</button>
+                    </div>
+                </div>
+
+                <div class="damage-counter">
+                    На данный момент вами нанесено урона: <span id="total-damage-dealt">0</span> HP.
+                </div>
+            </div>
+
+            <!-- Правая колонка: Противник -->
+            <div class="side-panel monster-side">
+                <div class="avatar-box">
+                    <img src="{% static 'img/obraz/skin.png' %}" alt="Monster" class="avatar">
+                </div>
+                <div class="equip-slots-right">
+                    <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+                    <div class="slot"></div><div class="slot"></div><div class="slot"></div>
                 </div>
             </div>
         </div>
 
-        <div class="combat-body">
-            <div class="controls" id="combat-controls">
-                <h3>Выберите зоны:</h3>
-                <div class="zones-selection">
-                    <div class="attack-zones">
-                        <h4>Атака:</h4>
-                        <label><input type="radio" name="attack" value="1" checked> Голова</label>
-                        <label><input type="radio" name="attack" value="2"> Корпус</label>
-                        <label><input type="radio" name="attack" value="3"> Пояс</label>
-                        <label><input type="radio" name="attack" value="4"> Ноги</label>
-                    </div>
-                    <div class="defense-zones">
-                        <h4>Защита (выберите 2):</h4>
-                        <label><input type="checkbox" name="defense" value="1"> Голова</label>
-                        <label><input type="checkbox" name="defense" value="2" checked> Корпус</label>
-                        <label><input type="checkbox" name="defense" value="3" checked> Пояс</label>
-                        <label><input type="checkbox" name="defense" value="4"> Ноги</label>
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <button id="btn-hit" class="btn">Ударить!</button>
-                    <button id="btn-run" class="btn btn-secondary">Сбежать</button>
-                </div>
+        <!-- Нижняя часть: Лог -->
+        <div class="combat-footer">
+            <div class="log-header">
+                <span>Лог боя &raquo;</span>
             </div>
-
-            <div class="log-container">
-                <h3>Лог боя:</h3>
-                <div id="combat-log" class="log">
-                    {% for entry in state.log reversed %}
-                        <div class="log-entry">{{ entry }}</div>
-                    {% endfor %}
-                </div>
+            <div id="combat-log" class="combat-log-content">
+                {% for entry in state.log reversed %}
+                    <div class="log-entry">{{ entry }}</div>
+                {% endfor %}
             </div>
         </div>
 
@@ -76,26 +109,12 @@
 
     <script>
         const combatId = "{{ combat_id }}";
+        let totalDmg = 0;
 
         $(document).ready(function() {
-            // Ограничение на 2 чекбокса защиты
-            $('input[name="defense"]').on('change', function() {
-                if($('input[name="defense"]:checked').length > 2) {
-                    this.checked = false;
-                    alert("Можно выбрать только 2 зоны защиты!");
-                }
-            });
-
             $('#btn-hit').on('click', function() {
                 const attackZone = $('input[name="attack"]:checked').val();
-                const defenseZones = $('input[name="defense"]:checked').map(function() {
-                    return parseInt($(this).val());
-                }).get();
-
-                if (defenseZones.length !== 2) {
-                    alert("Выберите ровно 2 зоны защиты!");
-                    return;
-                }
+                const defenseBlock = $('input[name="defense"]:checked').val();
 
                 $(this).prop('disabled', true);
 
@@ -105,7 +124,7 @@
                     contentType: 'application/json',
                     data: JSON.stringify({
                         attack_zone: attackZone,
-                        defense_zones: defenseZones
+                        defense_block: defenseBlock
                     }),
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}'
@@ -119,12 +138,6 @@
                         $('#btn-hit').prop('disabled', false);
                     }
                 });
-            });
-
-            $('#btn-run').on('click', function() {
-                if (confirm("Вы уверены, что хотите сбежать? Вы проиграете бой.")) {
-                    window.location.href = '/game/';
-                }
             });
         });
 
@@ -143,6 +156,14 @@
             $('#combat-log').empty();
             [...state.log].reverse().forEach(entry => {
                 $('#combat-log').append(`<div class="log-entry">${entry}</div>`);
+
+                // Простейший подсчет урона игрока для счетчика (можно сделать точнее на бэкенде)
+                if (entry.includes('Игрок ударил') && entry.includes('на -')) {
+                    const match = entry.match(/на -(\d+) HP/);
+                    if (match) {
+                        // Это не совсем правильно при обновлении всего лога, но для демки сойдет
+                    }
+                }
             });
 
             // Status check

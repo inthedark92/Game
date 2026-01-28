@@ -5,9 +5,19 @@ from .models import PlayerProfile, InventoryItem, Combat, CurrencyTransaction
 
 ZONES = {
     1: "Голова",
-    2: "Корпус",
-    3: "Пояс",
-    4: "Ноги"
+    2: "Грудь",
+    3: "Живот",
+    4: "Пояс",
+    5: "Ноги"
+}
+
+# Маппинг блоков защиты (один выбор покрывает 3 зоны)
+BLOCK_SETS = {
+    1: [1, 2, 3], # блок головы, груди и живота
+    2: [2, 3, 4], # блок груди, живота и пояса
+    3: [3, 4, 5], # блок живота, пояса и ног
+    4: [4, 5, 1], # блок пояса, ног и головы
+    5: [5, 1, 2]  # блок ног, головы и груди
 }
 
 def start_battle(player_profile):
@@ -46,14 +56,16 @@ def start_battle(player_profile):
 
     return combat_state
 
-def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones):
+def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_block_id):
     """Расчет результата одного удара"""
-    # attacker_stats: {damage_min, damage_max, crit_chance, strength, intuition, ...}
-    # defender_stats: {armor, dodge_chance, agility, ...}
+    # attack_zone: 1..5
+    # defense_block_id: 1..5 (выбор блока)
 
-    log_msg = ""
     damage = 0
     result_type = "hit" # hit, crit, dodge, block, parry, miss
+
+    # Получаем список заблокированных зон
+    blocked_zones = BLOCK_SETS.get(defense_block_id, [])
 
     # 1. Промах (базовый шанс 5%)
     if random.randint(1, 100) <= 5:
@@ -70,7 +82,7 @@ def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones)
         return 0, "parry", "Парировал"
 
     # 4. Блок
-    if attack_zone in defense_zones:
+    if attack_zone in blocked_zones:
         result_type = "block"
 
     # 5. Крит (зависит от удачи/интуиции)
@@ -80,7 +92,7 @@ def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones)
         is_crit = True
         result_type = "crit"
 
-    # 4. Урон
+    # 6. Урон
     base_damage = random.randint(attacker_stats.get('damage_min', 1), attacker_stats.get('damage_max', 5))
     # Бонус от силы: +10% за каждую единицу силы выше 3
     strength = attacker_stats.get('strength', 3)
@@ -90,29 +102,28 @@ def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones)
         damage *= 2
 
     if result_type == "block":
+        # В OldBK блок полностью поглощает урон или значительно снижает.
+        # Упростим: блок снижает урон на 75%
         damage *= 0.25
 
-    # Вычитаем броню (броня в конкретной зоне?)
-    # defender_stats может иметь armor_head, armor_body, etc.
-    armor_keys = {1: 'armor_head', 2: 'armor_body', 3: 'armor_waist', 4: 'armor_legs'}
+    # Вычитаем броню
+    armor_keys = {1: 'armor_head', 2: 'armor_body', 3: 'armor_body', 4: 'armor_waist', 5: 'armor_legs'}
     armor = defender_stats.get(armor_keys.get(attack_zone, 'armor'), 0)
     damage = max(1, damage - armor)
 
     return int(damage), result_type, ""
 
-def handle_player_turn(combat_state, attack_zone, defense_zones):
+def handle_player_turn(combat_state, attack_zone, defense_block_id):
     """Обработка хода игрока"""
     player = combat_state['player']
     monster = combat_state['monster']
 
     # AI монстра для этого хода
-    npc_attack_zone, npc_defense_zones = handle_npc_turn(monster)
+    npc_attack_zone, npc_defense_block_id = handle_npc_turn(monster)
 
     # 1. Игрок бьет монстра
     player_attacks = player.get('num_attacks', 1)
     for i in range(player_attacks):
-        # Если игрок бьет несколько раз, он может бить в одну зону или разные?
-        # В OldBK обычно в одну выбранную зону.
         dmg, res, _ = calculate_damage(
             attacker_stats={
                 'damage_min': player['stats']['phys_damage_min'],
@@ -127,7 +138,7 @@ def handle_player_turn(combat_state, attack_zone, defense_zones):
                 'agility': monster['agility']
             },
             attack_zone=attack_zone,
-            defense_zones=npc_defense_zones
+            defense_block_id=npc_defense_block_id
         )
         monster['current_hp'] = max(0, monster['current_hp'] - dmg)
 
@@ -171,7 +182,7 @@ def handle_player_turn(combat_state, attack_zone, defense_zones):
             'agility': player['agility']
         },
         attack_zone=npc_attack_zone,
-        defense_zones=defense_zones
+        defense_block_id=defense_block_id
     )
     player['current_hp'] = max(0, player['current_hp'] - dmg)
 
@@ -198,10 +209,9 @@ def handle_player_turn(combat_state, attack_zone, defense_zones):
 
 def handle_npc_turn(monster):
     """AI монстра: выбор атаки и защиты"""
-    attack_zone = random.randint(1, 4)
-    # Выбор 2 уникальных зон защиты
-    defense_zones = random.sample(range(1, 5), 2)
-    return attack_zone, defense_zones
+    attack_zone = random.randint(1, 5)
+    defense_block_id = random.randint(1, 5)
+    return attack_zone, defense_block_id
 
 def finish_battle(combat_obj, player_profile):
     """Завершение боя и выдача наград"""
