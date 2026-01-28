@@ -527,7 +527,43 @@
 
             // Функция для боя с монстром
             function startMonsterFight() {
-                alert('Начинаем бой с монстром!');
+                fetch('/api/hunt/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json().then(data => ({ status: response.status, data })))
+                .then(({ status, data }) => {
+                    if (status === 200 && data.combat_id) {
+                        window.parent.location.href = `/game/combat/${data.combat_id}/`;
+                    } else if (data.status === 'already_in_combat') {
+                        window.parent.location.href = `/game/combat/${data.combat_id}/`;
+                    } else {
+                        alert(data.error || 'Не удалось начать бой');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при начале боя');
+                });
+            }
+
+            // Функция для получения CSRF токена
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
             }
 
             // Функция для арены

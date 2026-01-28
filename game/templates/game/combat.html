@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Бой - {{ state.monster.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/combat.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="combat-wrapper">
+        <div class="combat-header">
+            <div class="fighter player">
+                <div class="name">{{ state.player.name }} [{{ state.player.level }}]</div>
+                <div class="hp-bar-container">
+                    <div id="player-hp-bar" class="hp-bar" style="width: {{ player_hp_percent }}%;"></div>
+                    <div id="player-hp-text" class="hp-text">{{ state.player.current_hp }}/{{ state.player.max_hp }}</div>
+                </div>
+            </div>
+
+            <div class="vs">VS</div>
+
+            <div class="fighter monster">
+                <div class="name">{{ state.monster.name }} [{{ state.monster.level }}]</div>
+                <div class="hp-bar-container">
+                    <div id="monster-hp-bar" class="hp-bar" style="width: {{ monster_hp_percent }}%;"></div>
+                    <div id="monster-hp-text" class="hp-text">{{ state.monster.current_hp }}/{{ state.monster.max_hp }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="combat-body">
+            <div class="controls" id="combat-controls">
+                <h3>Выберите зоны:</h3>
+                <div class="zones-selection">
+                    <div class="attack-zones">
+                        <h4>Атака:</h4>
+                        <label><input type="radio" name="attack" value="1" checked> Голова</label>
+                        <label><input type="radio" name="attack" value="2"> Корпус</label>
+                        <label><input type="radio" name="attack" value="3"> Пояс</label>
+                        <label><input type="radio" name="attack" value="4"> Ноги</label>
+                    </div>
+                    <div class="defense-zones">
+                        <h4>Защита (выберите 2):</h4>
+                        <label><input type="checkbox" name="defense" value="1"> Голова</label>
+                        <label><input type="checkbox" name="defense" value="2" checked> Корпус</label>
+                        <label><input type="checkbox" name="defense" value="3" checked> Пояс</label>
+                        <label><input type="checkbox" name="defense" value="4"> Ноги</label>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="btn-hit" class="btn">Ударить!</button>
+                    <button id="btn-run" class="btn btn-secondary">Сбежать</button>
+                </div>
+            </div>
+
+            <div class="log-container">
+                <h3>Лог боя:</h3>
+                <div id="combat-log" class="log">
+                    {% for entry in state.log reversed %}
+                        <div class="log-entry">{{ entry }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div id="battle-end-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <h2 id="modal-title">Бой завершен</h2>
+                <p id="modal-message"></p>
+                <button onclick="window.location.href='/game/'">Вернуться в игру</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const combatId = "{{ combat_id }}";
+
+        $(document).ready(function() {
+            // Ограничение на 2 чекбокса защиты
+            $('input[name="defense"]').on('change', function() {
+                if($('input[name="defense"]:checked').length > 2) {
+                    this.checked = false;
+                    alert("Можно выбрать только 2 зоны защиты!");
+                }
+            });
+
+            $('#btn-hit').on('click', function() {
+                const attackZone = $('input[name="attack"]:checked').val();
+                const defenseZones = $('input[name="defense"]:checked').map(function() {
+                    return parseInt($(this).val());
+                }).get();
+
+                if (defenseZones.length !== 2) {
+                    alert("Выберите ровно 2 зоны защиты!");
+                    return;
+                }
+
+                $(this).prop('disabled', true);
+
+                $.ajax({
+                    url: `/api/combat/${combatId}/turn/`,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        attack_zone: attackZone,
+                        defense_zones: defenseZones
+                    }),
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        updateCombatUI(response.state);
+                        $('#btn-hit').prop('disabled', response.state.status !== 'active');
+                    },
+                    error: function(xhr) {
+                        alert(xhr.responseJSON?.error || "Ошибка при выполнении хода");
+                        $('#btn-hit').prop('disabled', false);
+                    }
+                });
+            });
+
+            $('#btn-run').on('click', function() {
+                if (confirm("Вы уверены, что хотите сбежать? Вы проиграете бой.")) {
+                    window.location.href = '/game/';
+                }
+            });
+        });
+
+        function updateCombatUI(state) {
+            // HP Bars
+            const playerHpPercent = (state.player.current_hp / state.player.max_hp) * 100;
+            const monsterHpPercent = (state.monster.current_hp / state.monster.max_hp) * 100;
+
+            $('#player-hp-bar').css('width', playerHpPercent + '%');
+            $('#player-hp-text').text(`${state.player.current_hp}/${state.player.max_hp}`);
+
+            $('#monster-hp-bar').css('width', monsterHpPercent + '%');
+            $('#monster-hp-text').text(`${state.monster.current_hp}/${state.monster.max_hp}`);
+
+            // Log
+            $('#combat-log').empty();
+            [...state.log].reverse().forEach(entry => {
+                $('#combat-log').append(`<div class="log-entry">${entry}</div>`);
+            });
+
+            // Status check
+            if (state.status !== 'active') {
+                $('#combat-controls').hide();
+                $('#modal-title').text(state.status === 'victory' ? 'Победа!' : 'Поражение');
+                $('#modal-message').text(state.finish_message || "Бой окончен.");
+                $('#battle-end-modal').show();
+            }
+        }
+    </script>
+</body>
+</html>
