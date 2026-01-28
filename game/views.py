@@ -1,10 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from .models import ChatRoom, ChatMessage, PlayerProfile, Item, ShopItem, TavernItem, InventoryItem
+from .models import ChatRoom, ChatMessage, PlayerProfile, Item, ShopItem, TavernItem, InventoryItem, Combat
 import json
 from datetime import datetime
 import logging
@@ -254,6 +254,22 @@ def tavern_panel(request):
 @login_required
 def arena_panel(request):
     return render(request, 'arena_panel.html')
+
+@login_required
+def combat_view(request, combat_id):
+    combat = get_object_or_404(Combat, id=combat_id, owner=request.user)
+    state = combat.state
+
+    player_hp_percent = (state['player']['current_hp'] / state['player']['max_hp']) * 100
+    monster_hp_percent = (state['monster']['current_hp'] / state['monster']['max_hp']) * 100
+
+    context = {
+        'combat_id': combat_id,
+        'state': state,
+        'player_hp_percent': player_hp_percent,
+        'monster_hp_percent': monster_hp_percent,
+    }
+    return render(request, 'game/combat.html', context)
 
 @login_required
 def clan_panel(request):

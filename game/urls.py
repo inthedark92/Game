@@ -40,6 +40,7 @@ urlpatterns = [
     path('game/admin/get_admin_data/', views.admin_get_data, name='admin_get_data'),
     path('api/online_players/', views.online_players_api, name='online_players_api'),
 
+    path('game/combat/<uuid:combat_id>/', views.combat_view, name='combat_view'),
     path('api/hunt/', combat_api.api_hunt, name='api_hunt'),
     path('api/combat/<uuid:combat_id>/turn/', combat_api.api_combat_turn, name='api_combat_turn'),
     path('api/combat/<uuid:combat_id>/state/', combat_api.api_combat_state, name='api_combat_state'),
