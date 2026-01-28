@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/inventory/equip/', views.equip_item, name='equip_item'),
     path('api/inventory/unequip/', views.unequip_item, name='unequip_item'),
     path('api/shop/items/', views.shop_items_api, name='shop_items_api'),
+    path('api/shop/purchase/', views.api_shop_purchase, name='api_shop_purchase'),
 
     path('chat/get_messages/', views.get_messages, name='get_messages'),
     path('chat/send_message/', views.send_message, name='send_message'),
@@ -40,7 +41,6 @@ urlpatterns = [
     path('game/admin/get_admin_data/', views.admin_get_data, name='admin_get_data'),
     path('api/online_players/', views.online_players_api, name='online_players_api'),
 
-    path('game/combat/<uuid:combat_id>/', views.combat_view, name='combat_view'),
     path('api/hunt/', combat_api.api_hunt, name='api_hunt'),
     path('api/combat/<uuid:combat_id>/turn/', combat_api.api_combat_turn, name='api_combat_turn'),
     path('api/combat/<uuid:combat_id>/state/', combat_api.api_combat_state, name='api_combat_state'),

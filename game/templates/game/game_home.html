@@ -2,6 +2,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/game_home.css' %}">
+<link rel="stylesheet" href="{% static 'css/combat.css' %}">
 {% endblock %}
 
 <div class="top-image"></div>
@@ -91,6 +92,14 @@
     <button class="close-bank-frame" id="close-bank-frame">×</button>
     <div class="bank-frame-content">
         {% include 'frames/bank_panel.html' %}
+    </div>
+</div>
+
+<!-- Панель боя -->
+<div class="combat-frame" id="combat-frame">
+    <button class="close-combat-frame" id="close-combat-frame">×</button>
+    <div class="combat-frame-content">
+        {% include 'frames/combat_panel.html' %}
     </div>
 </div>
             
@@ -430,7 +439,30 @@
             }
         }
 
+        function toggleCombatPanel(combatId) {
+            const combatFrame = document.getElementById('combat-frame');
+            const frames = [
+                'character-frame', 'inventory-frame', 'shop-frame',
+                'tavern-frame', 'arena-frame', 'clan-frame',
+                'bank-frame', 'admin-frame', 'trade-frame'
+            ];
+
+            if (combatFrame.style.display === 'none' || !combatFrame.style.display) {
+                combatFrame.style.display = 'block';
+                frames.forEach(f => document.getElementById(f).style.display = 'none');
+                if (combatId) {
+                    openCombatPanel(combatId);
+                }
+            } else {
+                combatFrame.style.display = 'none';
+                if (typeof closeCombatPanel === 'function') {
+                    closeCombatPanel();
+                }
+            }
+        }
+
         // Сделаем функции доступными глобально
+        window.toggleCombatPanel = toggleCombatPanel;
         window.toggleClanPanel = toggleClanPanel;
         window.toggleBankPanel = toggleBankPanel;
         window.toggleShopPanel = toggleShopPanel;
@@ -485,6 +517,13 @@
         document.getElementById('close-trade-frame').addEventListener('click', function() {
             document.getElementById('trade-frame').style.display = 'none';
             localStorage.setItem('tradePanelOpen', 'false');
+        });
+
+        document.getElementById('close-combat-frame').addEventListener('click', function() {
+            document.getElementById('combat-frame').style.display = 'none';
+            if (typeof closeCombatPanel === 'function') {
+                closeCombatPanel();
+            }
         });
 
      // Восстановление состояния при загрузке

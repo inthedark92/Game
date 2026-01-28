@@ -373,6 +373,47 @@ class PlayerProfile(models.Model):
         
         return transaction
 
+    def update_stats_from_equipment(self):
+        """Обновляет характеристики персонажа на основе надетого снаряжения"""
+        # Сброс модификаторов
+        self.strength_mod = 0
+        self.agility_mod = 0
+        self.intuition_mod = 0
+        self.endurance_mod = 0
+        self.intelligence_mod = 0
+        self.wisdom_mod = 0
+        self.spirit_mod = 0
+
+        self.phys_damage_min = 0
+        self.phys_damage_max = 0
+        self.armor_head = 0
+        self.armor_body = 0
+        self.armor_waist = 0
+        self.armor_legs = 0
+
+        # Получаем все надетые предметы
+        equipped_items = self.inventory_items.filter(is_equipped=True).select_related('item')
+
+        for inv_item in equipped_items:
+            item = inv_item.item
+            self.strength_mod += item.bonus_strength
+            self.agility_mod += item.bonus_agility
+            self.intuition_mod += item.bonus_intuition
+            self.endurance_mod += item.bonus_endurance
+            self.intelligence_mod += item.bonus_intelligence
+            self.wisdom_mod += item.bonus_wisdom
+            self.spirit_mod += item.bonus_spirit
+
+            self.phys_damage_min += item.bonus_phys_damage_min
+            self.phys_damage_max += item.bonus_phys_damage_max
+
+            self.armor_head += item.bonus_armor_head
+            self.armor_body += item.bonus_armor_body
+            self.armor_waist += item.bonus_armor_waist
+            self.armor_legs += item.bonus_armor_legs
+
+        self.save()
+
     def get_wallet_summary(self):
         return {
             'coins': self.coins,

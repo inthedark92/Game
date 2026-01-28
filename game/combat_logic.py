@@ -46,6 +46,7 @@ def start_battle(player_profile):
         'strength': player_profile.get_total_strength(),
         'agility': player_profile.get_total_agility(),
         'intuition': player_profile.get_total_intuition(),
+        'total_damage_dealt': 0,
     }
 
     # Считаем количество ударов (по количеству оружия)
@@ -111,13 +112,22 @@ def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones)
 
     # Вычитаем броню
     armor_keys = {1: 'armor_head', 2: 'armor_body', 3: 'armor_waist', 4: 'armor_legs'}
-    armor = defender_stats.get(armor_keys.get(attack_zone, 'armor'), 0)
+    armor_attr = armor_keys.get(attack_zone, 'armor')
+    # Monsters have flat armor, players have zone-specific armor
+    if armor_attr in defender_stats:
+        armor = defender_stats[armor_attr]
+    else:
+        armor = defender_stats.get('armor', 0)
     damage = max(1, damage - armor)
 
     return int(damage), result_type, ""
 
 def handle_player_turn(combat_state, attack_zone, defense_zones):
     """Обработка хода игрока"""
+    if not isinstance(defense_zones, list) or len(defense_zones) != 2:
+        # Fallback to default defense if invalid
+        defense_zones = [1, 2]
+
     player = combat_state['player']
     monster = combat_state['monster']
 
@@ -144,6 +154,7 @@ def handle_player_turn(combat_state, attack_zone, defense_zones):
             defense_zones=npc_defense_zones
         )
         monster['current_hp'] = max(0, monster['current_hp'] - dmg)
+        player['total_damage_dealt'] += dmg
 
         msg = f"Игрок ударил {ZONES[attack_zone]} монстра"
         if res == "crit": msg += " (КРИТ)"

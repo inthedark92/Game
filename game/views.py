@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
 from .models import ChatRoom, ChatMessage, PlayerProfile, Item, ShopItem, TavernItem, InventoryItem, Combat
 import json
 from datetime import datetime
@@ -256,20 +257,6 @@ def arena_panel(request):
     return render(request, 'arena_panel.html')
 
 @login_required
-def combat_view(request, combat_id):
-    combat = get_object_or_404(Combat, id=combat_id, owner=request.user)
-    state = combat.state
-
-    player_hp_percent = (state['player']['current_hp'] / state['player']['max_hp']) * 100
-    monster_hp_percent = (state['monster']['current_hp'] / state['monster']['max_hp']) * 100
-
-    context = {
-        'combat_id': combat_id,
-        'state': state,
-        'player_hp_percent': player_hp_percent,
-        'monster_hp_percent': monster_hp_percent,
-    }
-    return render(request, 'game/combat.html', context)
 
 @login_required
 def clan_panel(request):
@@ -347,8 +334,10 @@ def inventory_api(request):
                         'require_level': inv_item.item.require_level
                     },
                     'quantity': inv_item.quantity,
-                    'current_durability': inv_item.current_durability,
-                    'max_durability': inv_item.max_durability,
+                    'durability': {
+                        'current': inv_item.current_durability,
+                        'max': inv_item.max_durability
+                    },
                     'is_equipped': inv_item.is_equipped,
                     'can_equip': inv_item.can_equip(),
                     'equipment_slot': inv_item.get_equipment_slot()
@@ -385,7 +374,8 @@ def shop_items_api(request):
         for shop_item in shop_items:
             item = shop_item.item
             items_data.append({
-                'id': item.id,
+                'id': shop_item.id,
+                'item_id': item.id,
                 'name': item.name,
                 'type': item.type,
                 'subtype': item.subtype,
@@ -404,6 +394,90 @@ def shop_items_api(request):
         return JsonResponse(items_data, safe=False)
     except Exception as e:
         logger.error(f"Error in shop_items_api: {str(e)}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def api_shop_purchase(request):
+    try:
+        data = json.loads(request.body)
+        shop_item_id = data.get('shop_item_id')
+        quantity = int(data.get('quantity', 1))
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return JsonResponse({'error': 'Invalid input data'}, status=400)
+
+    if quantity < 1:
+        return JsonResponse({'error': 'Количество должно быть не менее 1'}, status=400)
+
+    try:
+        with transaction.atomic():
+            profile = PlayerProfile.objects.select_for_update().get(user=request.user)
+            shop_item = ShopItem.objects.select_related('item').get(id=shop_item_id, is_available=True)
+
+            if profile.level < shop_item.item.require_level:
+                return JsonResponse({'error': f'Требуется уровень {shop_item.item.require_level}'}, status=400)
+
+            # Расчет общей стоимости
+            total_money = shop_item.price_money * quantity
+            total_silver = shop_item.price_silver * quantity
+            total_gold = shop_item.price_gold * quantity
+
+            if total_money > 0 and not profile.has_enough_currency('coins', total_money):
+                return JsonResponse({'error': 'Недостаточно монет'}, status=400)
+            if total_silver > 0 and not profile.has_enough_currency('silver', total_silver):
+                return JsonResponse({'error': 'Недостаточно серебра'}, status=400)
+            if total_gold > 0 and not profile.has_enough_currency('gold', total_gold):
+                return JsonResponse({'error': 'Недостаточно золота'}, status=400)
+
+            # Списание валюты
+            if total_money > 0:
+                profile.subtract_currency('coins', total_money, f'Покупка {shop_item.item.name} x{quantity}')
+            if total_silver > 0:
+                profile.subtract_currency('silver', total_silver, f'Покупка {shop_item.item.name} x{quantity}')
+            if total_gold > 0:
+                profile.subtract_currency('gold', total_gold, f'Покупка {shop_item.item.name} x{quantity}')
+
+            # Добавление в инвентарь
+            existing_positions = set(InventoryItem.objects.filter(owner=profile).values_list('inventory_position', flat=True))
+
+            if shop_item.item.is_stackable:
+                inv_item, created = InventoryItem.objects.get_or_create(
+                    owner=profile,
+                    item=shop_item.item,
+                    is_equipped=False,
+                    defaults={'quantity': 0, 'inventory_position': 0}
+                )
+                if created:
+                    for i in range(500):
+                        if i not in existing_positions:
+                            inv_item.inventory_position = i
+                            break
+                inv_item.quantity += quantity
+                inv_item.save()
+            else:
+                for _ in range(quantity):
+                    new_pos = 0
+                    for i in range(500):
+                        if i not in existing_positions:
+                            new_pos = i
+                            existing_positions.add(i)
+                            break
+
+                    InventoryItem.objects.create(
+                        owner=profile,
+                        item=shop_item.item,
+                        quantity=1,
+                        inventory_position=new_pos,
+                        current_durability=100,
+                        max_durability=100
+                    )
+
+            return JsonResponse({'success': True, 'message': f'Вы успешно купили {shop_item.item.name} x{quantity}'})
+
+    except ShopItem.DoesNotExist:
+        return JsonResponse({'error': 'Предмет не найден в магазине'}, status=404)
+    except Exception as e:
+        logger.error(f"Error in api_shop_purchase: {str(e)}", exc_info=True)
         return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
