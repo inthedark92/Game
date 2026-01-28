@@ -803,6 +803,26 @@ class Transaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     
+class Monster(models.Model):
+    name = models.CharField(max_length=100)
+    level = models.IntegerField(default=0)
+    hp = models.IntegerField(default=100)
+    strength = models.IntegerField(default=3)
+    agility = models.IntegerField(default=3)
+    intuition = models.IntegerField(default=3)
+    endurance = models.IntegerField(default=3)
+    damage_min = models.IntegerField(default=1)
+    damage_max = models.IntegerField(default=5)
+    crit_chance = models.IntegerField(default=5)
+    dodge_chance = models.IntegerField(default=5)
+    armor = models.IntegerField(default=0)
+    xp_reward = models.IntegerField(default=10)
+    coin_reward = models.IntegerField(default=1)
+    image = models.ImageField(upload_to='monsters/', null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} (Lvl {self.level})"
+
 # Добавьте этот класс в конец game/models.py (после существующих моделей)
 from uuid import uuid4
 from django.conf import settings

@@ -50,22 +50,21 @@
                         <div class="atk-selection">
                             <div class="selection-title">Атака</div>
                             <label><input type="radio" name="attack" value="1" checked> удар в голову</label>
-                            <label><input type="radio" name="attack" value="2"> удар в грудь</label>
-                            <label><input type="radio" name="attack" value="3"> удар в живот</label>
-                            <label><input type="radio" name="attack" value="4"> удар в пояс(пах)</label>
-                            <label><input type="radio" name="attack" value="5"> удар по ногам</label>
+                            <label><input type="radio" name="attack" value="2"> удар в корпус</label>
+                            <label><input type="radio" name="attack" value="3"> удар в пояс</label>
+                            <label><input type="radio" name="attack" value="4"> удар по ногам</label>
                         </div>
                         <div class="def-selection">
-                            <div class="selection-title">Защита</div>
-                            <label><input type="radio" name="defense" value="1" checked> блок головы, груди и живота</label>
-                            <label><input type="radio" name="defense" value="2"> блок груди, живота и пояса</label>
-                            <label><input type="radio" name="defense" value="3"> блок живота, пояса и ног</label>
-                            <label><input type="radio" name="defense" value="4"> блок пояса, ног и головы</label>
-                            <label><input type="radio" name="defense" value="5"> блок ног, головы и груди</label>
+                            <div class="selection-title">Защита (выберите 2)</div>
+                            <label><input type="checkbox" name="defense" value="1"> блок головы</label>
+                            <label><input type="checkbox" name="defense" value="2"> блок корпуса</label>
+                            <label><input type="checkbox" name="defense" value="3"> блок пояса</label>
+                            <label><input type="checkbox" name="defense" value="4"> блок ног</label>
                         </div>
                     </div>
                     <div class="action-row">
                         <button id="btn-hit" class="hit-button">Вперёд!!!</button>
+                        <button id="btn-flee" class="flee-button">Бежать</button>
                     </div>
                 </div>
 
@@ -112,9 +111,24 @@
         let totalDmg = 0;
 
         $(document).ready(function() {
+            // Ограничение выбора защиты до 2-х зон
+            $('input[name="defense"]').on('change', function() {
+                if ($('input[name="defense"]:checked').length > 2) {
+                    $(this).prop('checked', false);
+                    alert("Можно выбрать только 2 зоны защиты!");
+                }
+            });
+
             $('#btn-hit').on('click', function() {
                 const attackZone = $('input[name="attack"]:checked').val();
-                const defenseBlock = $('input[name="defense"]:checked').val();
+                const defenseZones = $('input[name="defense"]:checked').map(function() {
+                    return parseInt($(this).val());
+                }).get();
+
+                if (!attackZone || defenseZones.length !== 2) {
+                    alert("Выберите зону атаки и 2 зоны защиты!");
+                    return;
+                }
 
                 $(this).prop('disabled', true);
 
@@ -124,7 +138,7 @@
                     contentType: 'application/json',
                     data: JSON.stringify({
                         attack_zone: attackZone,
-                        defense_block: defenseBlock
+                        defense_zones: defenseZones
                     }),
                     headers: {
                         'X-CSRFToken': '{{ csrf_token }}'
@@ -136,6 +150,24 @@
                     error: function(xhr) {
                         alert(xhr.responseJSON?.error || "Ошибка при выполнении хода");
                         $('#btn-hit').prop('disabled', false);
+                    }
+                });
+            });
+
+            $('#btn-flee').on('click', function() {
+                if (!confirm("Вы уверены, что хотите сбежать?")) return;
+
+                $.ajax({
+                    url: `/api/combat/${combatId}/flee/`,
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        updateCombatUI(response.state);
+                    },
+                    error: function(xhr) {
+                        alert(xhr.responseJSON?.error || "Ошибка при побеге");
                     }
                 });
             });

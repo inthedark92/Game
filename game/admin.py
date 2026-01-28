@@ -1,7 +1,14 @@
 # admin.py
 from django.contrib import admin
 from django import forms
-from .models import PriceSettings, ExchangeRates, Transaction
+from .models import PriceSettings, ExchangeRates, Transaction, Monster
+
+class MonsterAdmin(admin.ModelAdmin):
+    list_display = ['name', 'level', 'hp', 'xp_reward', 'coin_reward']
+    list_filter = ['level']
+    search_fields = ['name']
+
+admin.site.register(Monster, MonsterAdmin)
 
 class PriceSettingsAdmin(admin.ModelAdmin):
     list_display = ['resource_type', 'min_price', 'max_price', 'average_price', 'updated_at']

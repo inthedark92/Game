@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
 
 from .models import Combat, PlayerProfile
-from .combat_logic import start_battle, handle_player_turn, finish_battle
+from .combat_logic import start_battle, handle_player_turn, finish_battle, handle_flee
 
 @require_POST
 @login_required
@@ -41,17 +41,19 @@ def api_combat_turn(request, combat_id):
     """
     POST /api/combat/<combat_id>/turn
     Обработка хода игрока
-    Тело: {"attack_zone": 1, "defense_block": 1}
+    Тело: {"attack_zone": 1, "defense_zones": [1, 2]}
     """
     try:
         data = json.loads(request.body)
         attack_zone = int(data.get('attack_zone'))
-        defense_block = int(data.get('defense_block'))
+        defense_zones = data.get('defense_zones')
+        if not isinstance(defense_zones, list):
+             return HttpResponseBadRequest("defense_zones must be a list")
     except (json.JSONDecodeError, ValueError, TypeError):
         return HttpResponseBadRequest("Invalid input data")
 
-    if not attack_zone or not defense_block:
-        return JsonResponse({"error": "Выберите зону атаки и блок защиты"}, status=400)
+    if not attack_zone or len(defense_zones) != 2:
+        return JsonResponse({"error": "Выберите зону атаки и 2 зоны защиты"}, status=400)
 
     try:
         with transaction.atomic():
@@ -62,7 +64,7 @@ def api_combat_turn(request, combat_id):
                 return JsonResponse({"combat_id": str(combat_obj.id), "state": state, "message": "Бой уже завершен"})
 
             # Обработка хода
-            new_state = handle_player_turn(state, attack_zone, defense_block)
+            new_state = handle_player_turn(state, attack_zone, defense_zones)
 
             # Если бой завершился на этом ходу
             message = ""
@@ -78,6 +80,40 @@ def api_combat_turn(request, combat_id):
         raise Http404("Combat not found")
 
     return JsonResponse({"combat_id": str(combat_obj.id), "state": new_state, "message": message})
+
+@require_POST
+@login_required
+def api_combat_flee(request, combat_id):
+    """
+    POST /api/combat/<combat_id>/flee
+    Попытка сбежать
+    """
+    try:
+        with transaction.atomic():
+            combat_obj = Combat.objects.select_for_update().get(id=combat_id, owner=request.user)
+            state = combat_obj.state
+
+            if state.get('status') != 'active':
+                return JsonResponse({"error": "Бой уже завершен"}, status=400)
+
+            success = handle_flee(state)
+
+            message = ""
+            if success:
+                # В случае успеха просто завершаем бой
+                pass
+            else:
+                # В случае неудачи монстр получает ход?
+                # Для простоты просто пишем в лог и продолжаем бой
+                pass
+
+            combat_obj.state = state
+            combat_obj.save(update_fields=["state", "updated_at"])
+
+    except Combat.DoesNotExist:
+        raise Http404("Combat not found")
+
+    return JsonResponse({"combat_id": str(combat_obj.id), "state": state})
 
 @require_GET
 @login_required
