@@ -536,10 +536,12 @@
                 })
                 .then(response => response.json().then(data => ({ status: response.status, data })))
                 .then(({ status, data }) => {
-                    if (status === 200 && data.combat_id) {
-                        window.parent.location.href = `/game/combat/${data.combat_id}/`;
-                    } else if (data.status === 'already_in_combat') {
-                        window.parent.location.href = `/game/combat/${data.combat_id}/`;
+                    if ((status === 200 && data.combat_id) || data.status === 'already_in_combat') {
+                        if (window.parent && typeof window.parent.toggleCombatPanel === 'function') {
+                            window.parent.toggleCombatPanel(data.combat_id);
+                        } else {
+                            window.location.href = `/game/combat/${data.combat_id}/`;
+                        }
                     } else {
                         alert(data.error || 'Не удалось начать бой');
                     }

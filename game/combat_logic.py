@@ -1,7 +1,7 @@
 import random
 from django.utils import timezone
 from .npc_templates import MONSTER_TEMPLATES
-from .models import PlayerProfile, InventoryItem, Combat, CurrencyTransaction
+from .models import PlayerProfile, InventoryItem, Combat, CurrencyTransaction, Monster
 
 ZONES = {
     1: "Голова",
@@ -12,7 +12,24 @@ ZONES = {
 
 def start_battle(player_profile):
     """Инициализация боя с монстром"""
-    monster_template = random.choice(MONSTER_TEMPLATES)
+    # Ищем подходящих монстров по уровню игрока
+    monsters = Monster.objects.filter(level=player_profile.level)
+
+    if not monsters.exists():
+        # Если нет монстров ровно этого уровня, ищем ближайших
+        monsters = Monster.objects.filter(level__lte=player_profile.level).order_by('-level')
+        if not monsters.exists():
+            # Совсем нет монстров - используем шаблон
+            monster_template = random.choice(MONSTER_TEMPLATES)
+        else:
+            # Берем случайного из монстров с максимальным уровнем <= уровня игрока
+            max_lvl = monsters[0].level
+            monsters = monsters.filter(level=max_lvl)
+            monster_obj = random.choice(monsters)
+            monster_template = monster_to_dict(monster_obj)
+    else:
+        monster_obj = random.choice(monsters)
+        monster_template = monster_to_dict(monster_obj)
 
     # Копия монстра для боя
     monster = monster_template.copy()
@@ -29,6 +46,7 @@ def start_battle(player_profile):
         'strength': player_profile.get_total_strength(),
         'agility': player_profile.get_total_agility(),
         'intuition': player_profile.get_total_intuition(),
+        'total_damage_dealt': 0,
     }
 
     # Считаем количество ударов (по количеству оружия)
@@ -48,12 +66,14 @@ def start_battle(player_profile):
 
 def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones):
     """Расчет результата одного удара"""
-    # attacker_stats: {damage_min, damage_max, crit_chance, strength, intuition, ...}
-    # defender_stats: {armor, dodge_chance, agility, ...}
+    # attack_zone: 1..4
+    # defense_zones: list of blocked zones (e.g. [1, 2])
 
-    log_msg = ""
     damage = 0
     result_type = "hit" # hit, crit, dodge, block, parry, miss
+
+    # Получаем список заблокированных зон
+    blocked_zones = defense_zones or []
 
     # 1. Промах (базовый шанс 5%)
     if random.randint(1, 100) <= 5:
@@ -70,8 +90,9 @@ def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones)
         return 0, "parry", "Парировал"
 
     # 4. Блок
-    if attack_zone in defense_zones:
+    if attack_zone in blocked_zones:
         result_type = "block"
+        return 0, "block", "Заблокировано"
 
     # 5. Крит (зависит от удачи/интуиции)
     is_crit = False
@@ -80,7 +101,7 @@ def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones)
         is_crit = True
         result_type = "crit"
 
-    # 4. Урон
+    # 6. Урон
     base_damage = random.randint(attacker_stats.get('damage_min', 1), attacker_stats.get('damage_max', 5))
     # Бонус от силы: +10% за каждую единицу силы выше 3
     strength = attacker_stats.get('strength', 3)
@@ -89,19 +110,24 @@ def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones)
     if is_crit:
         damage *= 2
 
-    if result_type == "block":
-        damage *= 0.25
-
-    # Вычитаем броню (броня в конкретной зоне?)
-    # defender_stats может иметь armor_head, armor_body, etc.
+    # Вычитаем броню
     armor_keys = {1: 'armor_head', 2: 'armor_body', 3: 'armor_waist', 4: 'armor_legs'}
-    armor = defender_stats.get(armor_keys.get(attack_zone, 'armor'), 0)
+    armor_attr = armor_keys.get(attack_zone, 'armor')
+    # Monsters have flat armor, players have zone-specific armor
+    if armor_attr in defender_stats:
+        armor = defender_stats[armor_attr]
+    else:
+        armor = defender_stats.get('armor', 0)
     damage = max(1, damage - armor)
 
     return int(damage), result_type, ""
 
 def handle_player_turn(combat_state, attack_zone, defense_zones):
     """Обработка хода игрока"""
+    if not isinstance(defense_zones, list) or len(defense_zones) != 2:
+        # Fallback to default defense if invalid
+        defense_zones = [1, 2]
+
     player = combat_state['player']
     monster = combat_state['monster']
 
@@ -111,8 +137,6 @@ def handle_player_turn(combat_state, attack_zone, defense_zones):
     # 1. Игрок бьет монстра
     player_attacks = player.get('num_attacks', 1)
     for i in range(player_attacks):
-        # Если игрок бьет несколько раз, он может бить в одну зону или разные?
-        # В OldBK обычно в одну выбранную зону.
         dmg, res, _ = calculate_damage(
             attacker_stats={
                 'damage_min': player['stats']['phys_damage_min'],
@@ -130,6 +154,7 @@ def handle_player_turn(combat_state, attack_zone, defense_zones):
             defense_zones=npc_defense_zones
         )
         monster['current_hp'] = max(0, monster['current_hp'] - dmg)
+        player['total_damage_dealt'] += dmg
 
         msg = f"Игрок ударил {ZONES[attack_zone]} монстра"
         if res == "crit": msg += " (КРИТ)"
@@ -196,12 +221,42 @@ def handle_player_turn(combat_state, attack_zone, defense_zones):
     combat_state['turn'] += 1
     return combat_state
 
+def monster_to_dict(monster_obj):
+    """Преобразование модели Monster в словарь для состояния боя"""
+    return {
+        'name': monster_obj.name,
+        'level': monster_obj.level,
+        'hp': monster_obj.hp,
+        'strength': monster_obj.strength,
+        'agility': monster_obj.agility,
+        'intuition': monster_obj.intuition,
+        'endurance': monster_obj.endurance,
+        'damage_min': monster_obj.damage_min,
+        'damage_max': monster_obj.damage_max,
+        'crit_chance': monster_obj.crit_chance,
+        'dodge_chance': monster_obj.dodge_chance,
+        'armor': monster_obj.armor,
+        'xp_reward': monster_obj.xp_reward,
+        'coin_reward': monster_obj.coin_reward
+    }
+
 def handle_npc_turn(monster):
     """AI монстра: выбор атаки и защиты"""
     attack_zone = random.randint(1, 4)
-    # Выбор 2 уникальных зон защиты
+    # Выбор 2 уникальных зон для защиты
     defense_zones = random.sample(range(1, 5), 2)
     return attack_zone, defense_zones
+
+def handle_flee(combat_state):
+    """Попытка сбежать из боя"""
+    # Шанс побега 50%
+    if random.random() < 0.5:
+        combat_state['status'] = 'fled'
+        combat_state['log'].append("Вы успешно сбежали из боя!")
+        return True
+    else:
+        combat_state['log'].append("Вам не удалось сбежать!")
+        return False
 
 def finish_battle(combat_obj, player_profile):
     """Завершение боя и выдача наград"""

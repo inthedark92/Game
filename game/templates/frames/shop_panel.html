@@ -162,13 +162,52 @@
             document.getElementById('total-money').textContent = totalMoney + ' монет';
         }
 
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
         function shopBuyItem(item, quantity) {
-            const priceDetails = [];
-            if (item.price_money > 0) priceDetails.push(`${item.price_money * quantity} монет`);
-            if (item.price_silver > 0) priceDetails.push(`${item.price_silver * quantity} гр серебра`);
-            if (item.price_gold > 0) priceDetails.push(`${item.price_gold * quantity} гр золота`);
-            
-            alert(`Вы купили ${quantity}x ${item.name} за ${priceDetails.join(', ')}!`);
+            fetch('/api/shop/purchase/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    shop_item_id: item.id,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    if (typeof loadInventoryData === 'function') {
+                        loadInventoryData();
+                    }
+                    // Обновление кошелька (если есть функция)
+                    if (typeof updateWalletUI === 'function') {
+                        updateWalletUI();
+                    }
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при совершении покупки');
+            });
         }
         
         function shopAddToCart(item, quantity) {
@@ -419,19 +458,36 @@
                             return;
                         }
                         
-                        let totalSilver = 0;
-                        let totalGold = 0;
-                        let totalMoney = 0;
-                        
-                        shopCart.forEach(item => {
-                            if (item.price_silver) totalSilver += item.price_silver * item.quantity;
-                            if (item.price_gold) totalGold += item.price_gold * item.quantity;
-                            if (item.price_money) totalMoney += item.price_money * item.quantity;
+                        const promises = shopCart.map(item => {
+                            return fetch('/api/shop/purchase/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify({
+                                    shop_item_id: item.id,
+                                    quantity: item.quantity
+                                })
+                            }).then(r => r.json());
                         });
-                    
-                        alert(`Покупка совершена!\nСеребро: ${totalSilver} гр\nЗолото: ${totalGold} гр\nМонеты: ${totalMoney}`);
-                        shopCart = [];
-                        shopUpdateCart();
+
+                        Promise.all(promises).then(results => {
+                            const errors = results.filter(r => r.error);
+                            if (errors.length > 0) {
+                                alert('Некоторые покупки не удались: ' + errors.map(e => e.error).join(', '));
+                            } else {
+                                alert('Все товары успешно куплены!');
+                            }
+                            shopCart = [];
+                            shopUpdateCart();
+                            if (typeof loadInventoryData === 'function') {
+                                loadInventoryData();
+                            }
+                            if (typeof updateWalletUI === 'function') {
+                                updateWalletUI();
+                            }
+                        });
                     });
                     
                     document.getElementById('shop-cancel-button').addEventListener('click', function() {

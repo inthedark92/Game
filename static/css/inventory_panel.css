@@ -144,12 +144,14 @@
 
 .inv-item-durability,
 .inv-item-quantity {
-    font-size: 12px;
-    background: rgba(139, 115, 85, 0.8);
-    padding: 3px 8px;
-    border-radius: 4px;
-    color: white;
+    font-size: 11px;
+    background: rgba(60, 40, 20, 0.9);
+    padding: 2px 5px;
+    border-radius: 3px;
+    color: #ffd700;
     font-weight: bold;
+    border: 1px solid #8b5e3c;
+    white-space: nowrap;
 }
 
 .inv-item-count {
