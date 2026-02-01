@@ -429,32 +429,49 @@ def api_shop_purchase(request):
             if total_gold > 0 and not profile.has_enough_currency('gold', total_gold):
                 return JsonResponse({'error': 'Недостаточно золота'}, status=400)
 
-            # Списание валюты
+            # Списание валюты с проверкой успешности
             if total_money > 0:
-                profile.subtract_currency('coins', total_money, f'Покупка {shop_item.item.name} x{quantity}')
+                if not profile.subtract_currency('coins', total_money, f'Покупка {shop_item.item.name} x{quantity}'):
+                    raise Exception('Ошибка при списании монет')
             if total_silver > 0:
-                profile.subtract_currency('silver', total_silver, f'Покупка {shop_item.item.name} x{quantity}')
+                if not profile.subtract_currency('silver', total_silver, f'Покупка {shop_item.item.name} x{quantity}'):
+                    raise Exception('Ошибка при списании серебра')
             if total_gold > 0:
-                profile.subtract_currency('gold', total_gold, f'Покупка {shop_item.item.name} x{quantity}')
+                if not profile.subtract_currency('gold', total_gold, f'Покупка {shop_item.item.name} x{quantity}'):
+                    raise Exception('Ошибка при списании золота')
 
             # Добавление в инвентарь
             existing_positions = set(InventoryItem.objects.filter(owner=profile).values_list('inventory_position', flat=True))
 
             if shop_item.item.is_stackable:
-                inv_item, created = InventoryItem.objects.get_or_create(
+                # Ищем уже существующий в инвентаре такой же предмет (не экипированный)
+                inv_item = InventoryItem.objects.filter(
                     owner=profile,
                     item=shop_item.item,
-                    is_equipped=False,
-                    defaults={'quantity': 0, 'inventory_position': 0}
-                )
-                if created:
+                    is_equipped=False
+                ).first()
+
+                if inv_item:
+                    # Если предмет уже есть, просто увеличиваем количество
+                    inv_item.quantity += quantity
+                    inv_item.save()
+                else:
+                    # Если предмета нет, создаем новую запись
+                    new_pos = 0
                     for i in range(500):
                         if i not in existing_positions:
-                            inv_item.inventory_position = i
+                            new_pos = i
                             break
-                inv_item.quantity += quantity
-                inv_item.save()
+
+                    InventoryItem.objects.create(
+                        owner=profile,
+                        item=shop_item.item,
+                        quantity=quantity,
+                        inventory_position=new_pos,
+                        is_equipped=False
+                    )
             else:
+                # Для нескладируемых предметов создаем по одной записи на каждую единицу
                 for _ in range(quantity):
                     new_pos = 0
                     for i in range(500):
@@ -469,7 +486,8 @@ def api_shop_purchase(request):
                         quantity=1,
                         inventory_position=new_pos,
                         current_durability=100,
-                        max_durability=100
+                        max_durability=100,
+                        is_equipped=False
                     )
 
             return JsonResponse({'success': True, 'message': f'Вы успешно купили {shop_item.item.name} x{quantity}'})
