@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/inventory/unequip/', views.unequip_item, name='unequip_item'),
     path('api/shop/items/', views.shop_items_api, name='shop_items_api'),
     path('api/shop/purchase/', views.api_shop_purchase, name='api_shop_purchase'),
+    path('api/profile/distribute_stat/', views.api_distribute_stat, name='api_distribute_stat'),
 
     path('chat/get_messages/', views.get_messages, name='get_messages'),
     path('chat/send_message/', views.send_message, name='send_message'),

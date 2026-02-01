@@ -66,14 +66,22 @@ def game_home(request):
         
         current_location = profile.current_location
         
+        # Вычисляем процент опыта
+        num_sublevels = 10
+        xp_per_sublevel = profile.experience_to_next_level // num_sublevels
+        if xp_per_sublevel == 0: xp_per_sublevel = 1
+        experience_percent = (profile.experience / xp_per_sublevel) * 100
+
         context = {
             'profile': {
                 'name': profile.name,
                 'level': profile.level,
+                'sublevel': profile.sublevel,
                 'classification': profile.classification,
                 'clan': None,
                 'experience': profile.experience,
                 'experience_to_next_level': profile.experience_to_next_level,
+                'experience_percent': experience_percent,
                 'current_location': current_location.name if current_location else "Неизвестно"
             },
             'resources': {
@@ -107,6 +115,7 @@ def game_home(request):
                 'spirit_base': profile.spirit_base,
                 'spirit_mod': profile.spirit_mod
             },
+            'free_stats': profile.free_stats,
             'combat': profile.get_combat_stats(),
             'magic': profile.get_magic_stats(),
             'wallet': profile.get_wallet_summary()
@@ -121,6 +130,12 @@ def character_panel(request):
     try:
         profile = PlayerProfile.objects.get(user=request.user)
         
+        # Вычисляем процент опыта
+        num_sublevels = 10
+        xp_per_sublevel = profile.experience_to_next_level // num_sublevels
+        if xp_per_sublevel == 0: xp_per_sublevel = 1
+        experience_percent = (profile.experience / xp_per_sublevel) * 100
+
         stats = {
             'total_strength': profile.get_total_strength(),
             'strength_base': profile.strength_base,
@@ -149,10 +164,12 @@ def character_panel(request):
             'profile': {
                 'name': profile.name,
                 'level': profile.level,
+                'sublevel': profile.sublevel,
                 'classification': profile.classification,
                 'clan': None,
                 'experience': profile.experience,
                 'experience_to_next_level': profile.experience_to_next_level,
+                'experience_percent': experience_percent,
             },
             'resources': {
                 'current_hp': profile.current_hp,
@@ -163,12 +180,13 @@ def character_panel(request):
                 'mp_regen_percent': profile.mp_regen_rate,
             },
             'stats': stats,
+            'free_stats': profile.free_stats,
             'combat': profile.get_combat_stats(),
             'magic': profile.get_magic_stats(),
             'wallet': profile.get_wallet_summary(),
         }
         
-        return render(request, 'character_panel.html', context)
+        return render(request, 'frames/character_panel.html', context)
     except Exception as e:
         logger.error(f"Error in character_panel: {str(e)}", exc_info=True)
         return redirect('error')
@@ -802,8 +820,9 @@ def admin_authenticate(request):
         username = data.get('username')
         password = data.get('password')
         
-        user = authenticate(username=username, password=password)
+        user = authenticate(request, username=username, password=password)
         if user is not None and user.is_superuser:
+            login(request, user)
             return JsonResponse({'success': True})
         return JsonResponse({'success': False})
     except Exception as e:
@@ -858,6 +877,29 @@ def admin_get_data(request):
         logger.error(f"Error in admin_get_data: {str(e)}", exc_info=True)
         return JsonResponse({'error': str(e)}, status=500)
     
+@login_required
+@require_POST
+def api_distribute_stat(request):
+    try:
+        data = json.loads(request.body)
+        stat_name = data.get('stat_name')
+
+        profile = PlayerProfile.objects.get(user=request.user)
+
+        if profile.distribute_stat(stat_name):
+            return JsonResponse({
+                'success': True,
+                'free_stats': profile.free_stats,
+                'stat_value': getattr(profile, f"{stat_name}_base"),
+                'max_hp': profile.max_hp,
+                'max_mp': profile.max_mp
+            })
+        else:
+            return JsonResponse({'success': False, 'message': 'Недостаточно очков или неверная характеристика'}, status=400)
+    except Exception as e:
+        logger.error(f"Error in api_distribute_stat: {str(e)}", exc_info=True)
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
 @login_required
 @require_http_methods(["GET"])
 def online_players_api(request):

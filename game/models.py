@@ -169,6 +169,7 @@ class PlayerProfile(models.Model):
             self.agility_base = 3
             self.intuition_base = 3
             self.endurance_base = 3
+            self.free_stats = 5
         
         self.max_hp = self.calculate_max_hp()
         self.max_mp = self.calculate_max_mp()
@@ -219,29 +220,58 @@ class PlayerProfile(models.Model):
 
     def gain_experience(self, amount):
         self.experience += amount
-        while self.experience >= self.experience_to_next_level:
-            self.level_up()
+        num_sublevels = 10
+        xp_per_sublevel = self.experience_to_next_level // num_sublevels
+        if xp_per_sublevel == 0: xp_per_sublevel = 1
+
+        while self.experience >= xp_per_sublevel:
+            if self.sublevel < num_sublevels - 1:
+                self.sublevel += 1
+                self.free_stats += 1
+                self.experience -= xp_per_sublevel
+            else:
+                self.level += 1
+                self.sublevel = 0
+                self.endurance_base += 1
+                self.free_stats += 3
+                self.experience -= xp_per_sublevel
+                self.experience_to_next_level = int(self.experience_to_next_level * 1.2)
+
+                self.max_hp = self.calculate_max_hp()
+                self.max_mp = self.calculate_max_mp()
+                self.current_hp = self.max_hp
+                self.current_mp = self.max_mp
+                self.update_inventory_slots()
+
+                # Recalculate xp_per_sublevel for next level
+                xp_per_sublevel = self.experience_to_next_level // num_sublevels
+                if xp_per_sublevel == 0: xp_per_sublevel = 1
         self.save()
     
     def level_up(self):
-        self.experience -= self.experience_to_next_level
+        # This method is now mostly used for manual level ups
         self.level += 1
         self.sublevel = 0
         self.endurance_base += 1
         self.free_stats += 3
         self.experience_to_next_level = int(self.experience_to_next_level * 1.2)
+        self.max_hp = self.calculate_max_hp()
+        self.max_mp = self.calculate_max_mp()
         self.current_hp = self.max_hp
         self.current_mp = self.max_mp
         self.update_inventory_slots()
         self.save()
 
     def sublevel_up(self):
-        if self.sublevel < 4:
+        num_sublevels = 10
+        if self.sublevel < num_sublevels - 1:
             self.sublevel += 1
             self.free_stats += 1
             self.save()
             return True
-        return False
+        else:
+            self.level_up()
+            return True
     
     def distribute_stat(self, stat_name):
         if self.free_stats <= 0:
