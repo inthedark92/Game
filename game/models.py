@@ -179,7 +179,7 @@ class PlayerProfile(models.Model):
         if self.current_mp == 0 or self.current_mp > self.max_mp:
             self.current_mp = self.max_mp
             
-        super().save(*args, **kwargs)
+        super(PlayerProfile, self).save(*args, **kwargs)
 
     def clean(self):
         currency_fields = [
