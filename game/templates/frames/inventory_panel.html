@@ -81,8 +81,8 @@
 
     <script>
         const INVENTORY_CONFIG = {
-            slotsPerRow: 6, // Уменьшено для больших ячеек
-            slotsPerPage: 48 // 6 рядов по 4 ячейки
+            slotsPerRow: 8,
+            slotsPerPage: 48
         };
         
         let invCurrentFilter = 'all';
@@ -150,13 +150,11 @@
         // Отрисовка сетки инвентаря (горизонтальный порядок)
         function renderInventoryGrid(items) {
             const grid = document.getElementById('inv-inventory-grid');
-            console.log("DEBUG: Rendering items:", items);
             
             if (!items || items.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-inventory">
-                        Инвентарь пуст<br>
-                        <small>Items count: 0</small>
+                        Инвентарь пуст
                     </div>`;
                 return;
             }
@@ -164,48 +162,65 @@
             let html = '';
             const startSlot = (currentPage - 1) * INVENTORY_CONFIG.slotsPerPage;
             
-            // Создаем сетку 6x4 (24 слота на страницу) в горизонтальном порядке
-            for (let row = 0; row < 8; row++) {
-                html += '<div class="inv-inventory-row">';
-                for (let col = 0; col < INVENTORY_CONFIG.slotsPerRow; col++) {
-                    const slotIndex = row * INVENTORY_CONFIG.slotsPerRow + col;
-                    const globalSlotIndex = startSlot + slotIndex;
-                    
-                    // Ищем предмет по inventory_position
-                    const slotItem = items.find(item => item.inventory_position === globalSlotIndex);
-                    
-                    // Показываем только занятые слоты
-                    if (slotItem) {
-                        const item = slotItem.item_instance;
-                        const durabilityText = item.durability ? `${item.durability.current}/${item.durability.max}` : '';
-                        const quantityText = item.item.is_stackable && item.quantity > 1 ? item.quantity : '';
+            if (invCurrentFilter === 'all') {
+                // Вкладка "Все": Показываем сетку с привязкой к inventory_position
+                const numRows = INVENTORY_CONFIG.slotsPerPage / INVENTORY_CONFIG.slotsPerRow;
+                for (let row = 0; row < numRows; row++) {
+                    html += '<div class="inv-inventory-row">';
+                    for (let col = 0; col < INVENTORY_CONFIG.slotsPerRow; col++) {
+                        const slotIndex = row * INVENTORY_CONFIG.slotsPerRow + col;
+                        const globalSlotIndex = startSlot + slotIndex;
+
+                        const slotItem = items.find(item => item.inventory_position === globalSlotIndex);
                         
-                        html += `
-                            <div class="inv-inventory-slot" data-slot="${globalSlotIndex}">
-                                <div class="inv-item ${item.is_equipped ? 'inv-item-equipped' : ''}" 
-                                     data-item-id="${item.id}"
-                                     data-item-type="${item.item.type}"
-                                     onclick="handleItemClick(${item.id}, ${item.is_equipped}, ${item.can_equip}, event)">
-                                    <div class="inv-item-name">${item.item.name}</div>
-                                    <div class="inv-item-image">
-                                        <img src="${item.item.image}" 
-                                             alt="${item.item.name}"
-                                             onerror="this.src='/static/img/default_item.png'">
-                                    </div>
-                                    <div class="inv-item-bottom-info">
-                                        ${durabilityText ? `<div class="inv-item-durability">${durabilityText}</div>` : ''}
-                                        ${quantityText ? `<div class="inv-item-quantity">${quantityText}</div>` : ''}
-                                    </div>
-                                </div>
-                                <div class="inv-slot-number">${globalSlotIndex + 1}</div>
-                            </div>
-                        `;
+                        if (slotItem) {
+                            html += renderSlotHtml(slotItem, globalSlotIndex);
+                        } else {
+                            // Пустой слот в сетке
+                            html += `<div class="inv-inventory-slot empty-slot" data-slot="${globalSlotIndex}">
+                                        <div class="inv-slot-number">${globalSlotIndex + 1}</div>
+                                     </div>`;
+                        }
                     }
+                    html += '</div>';
                 }
+            } else {
+                // Фильтрованные вкладки: Показываем компактную сетку
+                html += '<div class="inv-inventory-row compact-grid" style="flex-wrap: wrap;">';
+                items.forEach((slotItem, index) => {
+                    html += renderSlotHtml(slotItem, slotItem.inventory_position);
+                });
                 html += '</div>';
             }
             
             grid.innerHTML = html;
+        }
+
+        function renderSlotHtml(slotItem, displayIndex) {
+            const item = slotItem.item_instance;
+            const durabilityText = item.durability && item.durability.max > 0 ? `${item.durability.current}/${item.durability.max}` : '';
+            const quantityText = item.item.is_stackable && item.quantity > 1 ? item.quantity : '';
+
+            return `
+                <div class="inv-inventory-slot" data-slot="${slotItem.inventory_position}">
+                    <div class="inv-item ${item.is_equipped ? 'inv-item-equipped' : ''}"
+                         data-item-id="${item.id}"
+                         data-item-type="${item.item.type}"
+                         onclick="handleItemClick(${item.id}, ${item.is_equipped}, ${item.can_equip}, event)">
+                        <div class="inv-item-name">${item.item.name}</div>
+                        <div class="inv-item-image">
+                            <img src="${item.item.image}"
+                                 alt="${item.item.name}"
+                                 onerror="this.src='/static/img/default_item.png'">
+                        </div>
+                        <div class="inv-item-bottom-info">
+                            ${durabilityText ? `<div class="inv-item-durability">${durabilityText}</div>` : ''}
+                            ${quantityText ? `<div class="inv-item-quantity">${quantityText}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="inv-slot-number">${displayIndex + 1}</div>
+                </div>
+            `;
         }
 
         // Обработчик клика по предмету
@@ -289,46 +304,25 @@
                 slot.innerHTML = slot.dataset.originalLabel;
                 slot.classList.remove('has-item');
                 slot.onclick = null;
+
+                // Скрываем квестовые слоты по умолчанию
+                if (slot.classList.contains('slot-kv') || slot.className.includes('-kv')) {
+                    slot.style.display = 'none';
+                } else {
+                    slot.style.display = 'flex';
+                }
             });
 
-            const ringSlots = ['ring-1', 'ring-2', 'ring-3', 'ring-4', 'ring-5', 'ring-6'];
-            const braceletSlots = ['bracelet-1', 'bracelet-2'];
-            const earringSlots = ['earrings']; // matches slot-earrings
-            let ringIdx = 0;
-            let braceletIdx = 0;
-            let earringIdx = 0;
-
             equipped.forEach(item => {
-                let slotClass = '';
+                if (!item.slot) return;
 
-                if (item.subtype === 'ring') {
-                    if (ringIdx < ringSlots.length) {
-                        slotClass = `slot-${ringSlots[ringIdx++]}`;
-                    }
-                } else if (item.subtype === 'bracelet') {
-                    if (braceletIdx < braceletSlots.length) {
-                        slotClass = `slot-${braceletSlots[braceletIdx++]}`;
-                    }
-                } else if (item.subtype === 'earring') {
-                    slotClass = 'slot-earrings'; // В UI earrings во множественном
-                } else if (item.subtype === 'short') {
-                    slotClass = 'slot-shirt'; // В UI shirt, в БД short
-                } else if (item.slot === 'weapon') {
-                    // Ищем свободную руку
-                    const leftHand = document.querySelector('.slot-left-hand');
-                    if (!leftHand.classList.contains('has-item')) {
-                        slotClass = 'slot-left-hand';
-                    } else {
-                        slotClass = 'slot-right-hand';
-                    }
-                } else {
-                    slotClass = `slot-${item.slot}`;
-                }
+                let slotClass = item.slot.startsWith('slot-') ? item.slot : `slot-${item.slot}`;
 
                 const slotEl = document.querySelector(`.${slotClass}`);
                 if (slotEl) {
                     slotEl.innerHTML = `<img src="${item.image}" alt="${item.name}" title="${item.name}">`;
                     slotEl.classList.add('has-item');
+                    slotEl.style.display = 'flex'; // Показываем слот если в нем есть предмет
                     slotEl.onclick = () => unequipItem(item.id);
                 }
             });

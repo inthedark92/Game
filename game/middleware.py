@@ -15,7 +15,7 @@ class UpdateLastOnlineMiddleware:
                     profile.update_resources()
                     # last_online обновится автоматически при save() благодаря auto_now=True
                     # Используем update_fields чтобы не перезаписать изменения из других запросов
-                    profile.save(update_fields=['last_online', 'current_hp', 'current_mp'])
+                    profile.save(update_fields=['last_online', 'last_resource_update', 'current_hp', 'current_mp'])
             except Exception as e:
                 import logging
                 logger = logging.getLogger(__name__)
