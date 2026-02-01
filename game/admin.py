@@ -1,6 +1,4 @@
-# admin.py
 from django.contrib import admin
-from django import forms
 from .models import (
     PriceSettings, ExchangeRates, Transaction, Monster, PlayerProfile,
     InventoryItem, Item, ShopItem, Combat, TavernItem, ChatRoom, ChatMessage,
@@ -30,25 +28,25 @@ class PlayerProfileAdmin(admin.ModelAdmin):
         }),
     )
 
-admin.site.register(PlayerProfile, PlayerProfileAdmin)
-admin.site.register(Item)
-admin.site.register(InventoryItem)
-admin.site.register(ShopItem)
-admin.site.register(Combat)
-admin.site.register(TavernItem)
-admin.site.register(ChatRoom)
-admin.site.register(ChatMessage)
-admin.site.register(Alliance)
-admin.site.register(PlayerClan)
-admin.site.register(ClanMember)
-admin.site.register(CurrencyTransaction)
-
 class MonsterAdmin(admin.ModelAdmin):
     list_display = ['name', 'level', 'hp', 'xp_reward', 'coin_reward']
     list_filter = ['level']
     search_fields = ['name']
 
-admin.site.register(Monster, MonsterAdmin)
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ['name', 'type', 'subtype', 'require_level', 'base_price']
+    list_filter = ['type', 'subtype', 'require_level']
+    search_fields = ['name']
+
+class ShopItemAdmin(admin.ModelAdmin):
+    list_display = ['id', 'item', 'price_money', 'price_silver', 'price_gold', 'is_available', 'stock']
+    list_filter = ['is_available']
+    search_fields = ['item__name']
+
+class TavernItemAdmin(admin.ModelAdmin):
+    list_display = ['name', 'category', 'price', 'hp_restore', 'mp_restore', 'stock', 'is_available']
+    list_filter = ['category', 'is_available']
+    search_fields = ['name']
 
 class PriceSettingsAdmin(admin.ModelAdmin):
     list_display = ['resource_type', 'min_price', 'max_price', 'average_price', 'updated_at']
@@ -56,11 +54,10 @@ class PriceSettingsAdmin(admin.ModelAdmin):
     readonly_fields = ['average_price', 'updated_at']
     
     def save_model(self, request, obj, form, change):
-        # Автоматический пересчет средней цены при сохранении
+        from django.db.models import Avg
         transactions = Transaction.objects.filter(resource_type=obj.resource_type)
         if transactions.exists():
-            total_price = sum(t.price for t in transactions)
-            obj.average_price = total_price / transactions.count()
+            obj.average_price = transactions.aggregate(Avg('price'))['price__avg'] or 0
         super().save_model(request, obj, form, change)
 
 class ExchangeRatesAdmin(admin.ModelAdmin):
@@ -76,17 +73,30 @@ class TransactionAdmin(admin.ModelAdmin):
         obj.total = obj.amount * obj.price
         super().save_model(request, obj, form, change)
         
-        # Обновляем среднюю цену для данного типа ресурса
+        from django.db.models import Avg
         try:
             price_settings = PriceSettings.objects.get(resource_type=obj.resource_type)
             transactions = Transaction.objects.filter(resource_type=obj.resource_type)
             if transactions.exists():
-                total_price = sum(t.price for t in transactions)
-                price_settings.average_price = total_price / transactions.count()
+                price_settings.average_price = transactions.aggregate(Avg('price'))['price__avg'] or 0
                 price_settings.save()
         except PriceSettings.DoesNotExist:
             pass
 
+# Register models
+admin.site.register(PlayerProfile, PlayerProfileAdmin)
+admin.site.register(Item, ItemAdmin)
+admin.site.register(InventoryItem)
+admin.site.register(ShopItem, ShopItemAdmin)
+admin.site.register(Combat)
+admin.site.register(TavernItem, TavernItemAdmin)
+admin.site.register(ChatRoom)
+admin.site.register(ChatMessage)
+admin.site.register(Alliance)
+admin.site.register(PlayerClan)
+admin.site.register(ClanMember)
+admin.site.register(CurrencyTransaction)
+admin.site.register(Monster, MonsterAdmin)
 admin.site.register(PriceSettings, PriceSettingsAdmin)
 admin.site.register(ExchangeRates, ExchangeRatesAdmin)
 admin.site.register(Transaction, TransactionAdmin)

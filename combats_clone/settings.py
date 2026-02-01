@@ -113,3 +113,17 @@ LOGOUT_REDIRECT_URL = 'login'  # URL для перенаправления по�
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Python 3.14 compatibility fix for Django 4.2
+import django.template.context
+import copy
+
+def _fixed_copy(self):
+    cls = self.__class__
+    new_context = cls.__new__(cls)
+    for key, value in self.__dict__.items():
+        if key != 'dicts':
+            setattr(new_context, key, copy.copy(value))
+    new_context.dicts = [d.copy() for d in self.dicts]
+    return new_context
+
+django.template.context.BaseContext.__copy__ = _fixed_copy
