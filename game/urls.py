@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/inventory/', views.inventory_api, name='inventory_api'),
     path('api/inventory/item/<int:item_id>/', views.api_inventory_item_details, name='api_inventory_item_details'),
     path('api/inventory/equip/', views.equip_item, name='equip_item'),
+    path('api/inventory/use/', views.api_use_item, name='api_use_item'),
     path('api/equipment/', views.api_equipment, name='api_equipment'),
     path('api/inventory/unequip/', views.unequip_item, name='unequip_item'),
     path('api/shop/items/', views.shop_items_api, name='shop_items_api'),

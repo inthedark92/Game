@@ -70,8 +70,8 @@ class PlayerProfile(models.Model):
     max_hp = models.IntegerField(default=0)
     current_mp = models.IntegerField(default=0)
     max_mp = models.IntegerField(default=0)
-    hp_regen_rate = models.IntegerField(default=1)
-    mp_regen_rate = models.IntegerField(default=1)
+    hp_regen_rate = models.IntegerField(default=100)
+    mp_regen_rate = models.IntegerField(default=100)
     
     # Опыт
     experience = models.IntegerField(default=0)
@@ -446,6 +446,10 @@ class PlayerProfile(models.Model):
 
     def update_resources(self):
         """Регенерация HP и MP на основе прошедшего времени"""
+        # В бою регенерации нет
+        if Combat.objects.filter(owner=self.user, state__status='active').exists():
+            return
+
         now = timezone.now()
         if not self.last_online:
             self.last_online = now
@@ -687,6 +691,10 @@ class Item(models.Model):
     bonus_armor_legs = models.IntegerField(default=0)
     bonus_damage_resistance = models.IntegerField(default=0)
     
+    # Восстановление
+    hp_restore = models.IntegerField(default=0)
+    mp_restore = models.IntegerField(default=0)
+
     # Требования
     require_level = models.IntegerField(default=0)
     require_strength = models.IntegerField(default=0)
