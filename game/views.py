@@ -193,7 +193,7 @@ def character_panel(request):
 
 @login_required
 def inventory_panel(request):
-    return render(request, 'inventory_panel.html')
+    return render(request, 'frames/inventory_panel.html')
 
 @login_required
 def shop_panel(request):
@@ -236,7 +236,7 @@ def shop_panel(request):
                 }
             })
         
-        return render(request, 'shop_panel.html', {'items': items_data})
+        return render(request, 'frames/shop_panel.html', {'items': items_data})
     except Exception as e:
         logger.error(f"Error in shop_panel: {str(e)}", exc_info=True)
         return redirect('error')
@@ -262,7 +262,7 @@ def tavern_panel(request):
                 'stock': item.stock
             })
         
-        return render(request, 'tavern_panel.html', {
+        return render(request, 'frames/tavern_panel.html', {
             'profile': profile.get_wallet_summary(),
             'items_by_category': items_by_category
         })
@@ -272,13 +272,13 @@ def tavern_panel(request):
 
 @login_required
 def arena_panel(request):
-    return render(request, 'arena_panel.html')
+    return render(request, 'frames/arena_panel.html')
 
 @login_required
 
 @login_required
 def clan_panel(request):
-    return render(request, 'clan_panel.html')
+    return render(request, 'frames/clan_panel.html')
 
 @login_required
 @user_passes_test(is_admin)
@@ -298,11 +298,11 @@ def admin_panel(request):
 
 @login_required
 def bank_panel(request):
-    return render(request, 'bank_panel.html')
+    return render(request, 'frames/bank_panel.html')
 
 @login_required
 def trade_panel(request):
-    return render(request, 'trade_panel.html')
+    return render(request, 'frames/trade_panel.html')
 
 @login_required
 @require_http_methods(["GET"])
@@ -315,7 +315,7 @@ def api_equipment(request):
         for inv_item in equipped_items:
             data.append({
                 'id': inv_item.id,
-                'slot': inv_item.get_equipment_slot(),
+                'slot': inv_item.equipped_slot or inv_item.get_equipment_slot(),
                 'subtype': inv_item.item.subtype,
                 'name': inv_item.item.name,
                 'image': inv_item.item.image.url if inv_item.item.image else '/static/img/default_item.png',
@@ -342,18 +342,23 @@ def inventory_api(request):
         # Получаем предметы из инвентаря (только те, что не надеты)
         inventory_items = InventoryItem.objects.filter(owner=profile, is_equipped=False).select_related('item')
         
-        # Применяем фильтры
-        if filter_type != 'all':
+        if filter_type == 'all':
+            # Для вкладки "Все" пагинация основана на физических слотах
+            total_items = total_slots
+            total_pages = max(1, (total_slots + items_per_page - 1) // items_per_page)
+            paginated_items = inventory_items.filter(
+                inventory_position__gte=start_index,
+                inventory_position__lt=start_index + items_per_page
+            ).order_by('inventory_position')
+        else:
+            # Применяем фильтры
             inventory_items = inventory_items.filter(item__type=filter_type)
-        
-        if subfilter:
-            inventory_items = inventory_items.filter(item__subtype=subfilter)
-        
-        total_items = inventory_items.count()
-        total_pages = max(1, (total_items + items_per_page - 1) // items_per_page)
-        
-        # Получаем предметы для текущей страницы
-        paginated_items = inventory_items.order_by('inventory_position')[start_index:start_index + items_per_page]
+            if subfilter:
+                inventory_items = inventory_items.filter(item__subtype=subfilter)
+
+            total_items = inventory_items.count()
+            total_pages = max(1, (total_items + items_per_page - 1) // items_per_page)
+            paginated_items = inventory_items.order_by('inventory_position')[start_index:start_index + items_per_page]
         
         # Формируем данные для ответа
         items_data = []
@@ -542,6 +547,39 @@ def api_shop_purchase(request):
 @require_http_methods(["POST"])
 def equip_item(request):
     """Надеть предмет"""
+    SLOT_MAPPING = {
+        'helmet': ['slot-helmet'],
+        'necklace': ['slot-necklace'],
+        'earrings': ['slot-earrings'],
+        'chest': ['slot-chest'],
+        'shirt': ['slot-shirt'],
+        'plash': ['slot-plash'],
+        'bracers': ['slot-bracers'],
+        'gloves': ['slot-gloves'],
+        'bracelet': ['slot-bracelet-1', 'slot-bracelet-2'],
+        'belt': ['slot-belt'],
+        'pants': ['slot-pants'],
+        'boots': ['slot-boots'],
+        'ring': ['slot-ring-1', 'slot-ring-2', 'slot-ring-3', 'slot-ring-4', 'slot-ring-5', 'slot-ring-6'],
+        'weapon': ['slot-left-hand', 'slot-right-hand'],
+        'shield': ['slot-right-hand'],
+        'orb': ['slot-orb'],
+        'potion': ['slot-potion-1', 'slot-potion-2', 'slot-potion-3'],
+    }
+
+    QUEST_SLOT_MAPPING = {
+        'helmet': 'slot-helmet-kv',
+        'necklace': 'slot-necklace-kv',
+        'earrings': 'slot-earrings-kv',
+        'chest': 'slot-chest-kv',
+        'bracers': 'slot-bracers-kv',
+        'gloves': 'slot-gloves-kv',
+        'belt': 'slot-belt-kv',
+        'pants': 'slot-pants-kv',
+        'boots': 'slot-boots-kv',
+        'ring': 'slot-ring-1-kv',
+    }
+
     try:
         data = json.loads(request.body)
         item_id = data.get('item_id')
@@ -551,66 +589,68 @@ def equip_item(request):
 
             # Находим предмет
             try:
-                item = InventoryItem.objects.select_for_update().get(id=item_id, owner=profile)
+                inv_item = InventoryItem.objects.select_for_update().get(id=item_id, owner=profile)
             except InventoryItem.DoesNotExist:
                 return JsonResponse({'success': False, 'message': 'Предмет не найден'})
 
             # Проверяем, можно ли надеть
-            if not item.can_equip():
+            if not inv_item.can_equip():
                 return JsonResponse({'success': False, 'message': 'Этот предмет нельзя надеть'})
 
             # Проверяем уровень
-            if item.item.require_level > profile.level:
-                return JsonResponse({'success': False, 'message': f'Требуется уровень {item.item.require_level}'})
+            if inv_item.item.require_level > profile.level:
+                return JsonResponse({'success': False, 'message': f'Требуется уровень {inv_item.item.require_level}'})
 
-            equipment_slot = item.get_equipment_slot()
+            # Определяем возможные слоты
+            item_type = inv_item.item.type
+            item_subtype = inv_item.item.subtype
+            is_quest = inv_item.item.is_quest
+
+            possible_slots = []
+            if is_quest and item_subtype in QUEST_SLOT_MAPPING:
+                possible_slots = [QUEST_SLOT_MAPPING[item_subtype]]
+            elif item_subtype in SLOT_MAPPING:
+                possible_slots = SLOT_MAPPING[item_subtype]
+            elif item_type in SLOT_MAPPING:
+                possible_slots = SLOT_MAPPING[item_type]
+
+            if not possible_slots:
+                return JsonResponse({'success': False, 'message': 'Нет подходящего слота для этого предмета'})
 
             # Находим все надетые предметы
             equipped_items = InventoryItem.objects.filter(
                 owner=profile,
                 is_equipped=True
-            ).select_related('item').select_for_update()
+            ).select_for_update()
 
-            # Снимаем предметы, занимающие тот же слот
-            if equipment_slot == 'weapon':
-                # Для оружия разрешаем 2 предмета
-                currently_equipped_weapons = equipped_items.filter(item__type='weapon')
-                if currently_equipped_weapons.count() >= 2:
-                    first_w = currently_equipped_weapons.first()
-                    first_w.is_equipped = False
-                    first_w.save()
-            elif equipment_slot == 'ring':
-                # Для колец разрешаем 6 предметов
-                currently_equipped_rings = equipped_items.filter(item__subtype='ring')
-                if currently_equipped_rings.count() >= 6:
-                    first_r = currently_equipped_rings.first()
-                    first_r.is_equipped = False
-                    first_r.save()
-            elif equipment_slot == 'bracelet':
-                # Для браслетов разрешаем 2 предмета
-                currently_equipped_bracelets = equipped_items.filter(item__subtype='bracelet')
-                if currently_equipped_bracelets.count() >= 2:
-                    first_b = currently_equipped_bracelets.first()
-                    first_b.is_equipped = False
-                    first_b.save()
-            else:
-                # Для остальных слотов - только один предмет
-                for equipped_item in equipped_items:
-                    if equipped_item.get_equipment_slot() == equipment_slot:
-                        equipped_item.is_equipped = False
-                        equipped_item.save()
+            # Ищем свободный слот среди возможных
+            target_slot = None
+            for slot in possible_slots:
+                if not equipped_items.filter(equipped_slot=slot).exists():
+                    target_slot = slot
+                    break
+
+            # Если свободного слота нет, заменяем в первом возможном
+            if not target_slot:
+                target_slot = possible_slots[0]
+                item_to_unequip = equipped_items.filter(equipped_slot=target_slot).first()
+                if item_to_unequip:
+                    item_to_unequip.is_equipped = False
+                    item_to_unequip.equipped_slot = None
+                    item_to_unequip.save()
 
             # Надеваем новый предмет
-            item.is_equipped = True
-            item.save()
+            inv_item.is_equipped = True
+            inv_item.equipped_slot = target_slot
+            inv_item.save()
 
             # Обновляем характеристики персонажа
             profile.update_stats_from_equipment()
         
         return JsonResponse({
             'success': True, 
-            'message': f'{item.item.name} надет',
-            'equipment_slot': equipment_slot
+            'message': f'{inv_item.item.name} надет',
+            'equipment_slot': target_slot
         })
         
     except Exception as e:
@@ -698,6 +738,7 @@ def unequip_item(request):
 
             # Снимаем предмет
             item.is_equipped = False
+            item.equipped_slot = None
             item.save()
 
             # Обновляем характеристики персонажа

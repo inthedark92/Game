@@ -46,6 +46,7 @@ class PlayerProfile(models.Model):
     free_stats = models.IntegerField(default=0)
     classification = models.CharField(max_length=10, choices=CLASSIFICATION_CHOICES)
     last_online = models.DateTimeField(auto_now=True)
+    last_resource_update = models.DateTimeField(null=True, blank=True)
     
     # Базовые характеристики
     strength_base = models.IntegerField(default=3)
@@ -414,12 +415,13 @@ class PlayerProfile(models.Model):
         self.wisdom_mod = 0
         self.spirit_mod = 0
 
-        self.phys_damage_min = 0
-        self.phys_damage_max = 0
         self.armor_head = 0
         self.armor_body = 0
         self.armor_waist = 0
         self.armor_legs = 0
+
+        item_damage_min = 0
+        item_damage_max = 0
 
         # Получаем все надетые предметы
         equipped_items = self.inventory_items.filter(is_equipped=True).select_related('item')
@@ -434,13 +436,18 @@ class PlayerProfile(models.Model):
             self.wisdom_mod += item.bonus_wisdom
             self.spirit_mod += item.bonus_spirit
 
-            self.phys_damage_min += item.bonus_phys_damage_min
-            self.phys_damage_max += item.bonus_phys_damage_max
+            item_damage_min += item.bonus_phys_damage_min
+            item_damage_max += item.bonus_phys_damage_max
 
             self.armor_head += item.bonus_armor_head
             self.armor_body += item.bonus_armor_body
             self.armor_waist += item.bonus_armor_waist
             self.armor_legs += item.bonus_armor_legs
+
+        # Итоговый урон: База от силы (с учетом бонусов) + бонусы урона от предметов
+        total_strength = self.get_total_strength()
+        self.phys_damage_min = total_strength + item_damage_min
+        self.phys_damage_max = (total_strength * 2) + item_damage_max
 
         self.save()
 
@@ -451,23 +458,35 @@ class PlayerProfile(models.Model):
             return
 
         now = timezone.now()
-        if not self.last_online:
-            self.last_online = now
+        if not self.last_resource_update:
+            self.last_resource_update = now
             return
 
-        elapsed_seconds = (now - self.last_online).total_seconds()
-        if elapsed_seconds <= 1: # Минимум 1 секунда для расчета
+        elapsed_seconds = (now - self.last_resource_update).total_seconds()
+        if elapsed_seconds < 1: # Минимум 1 секунда для расчета
             return
 
-        # Регенерация HP (rate % от макс за минуту)
-        hp_to_add = (self.max_hp * (self.hp_regen_rate / 100.0)) * (elapsed_seconds / 60.0)
-        if hp_to_add > 0:
-            self.current_hp = min(float(self.max_hp), float(self.current_hp) + hp_to_add)
+        # Регенерация HP/MP (100% за 60 секунд)
+        hp_to_add = self.max_hp * (elapsed_seconds / 60.0)
+        mp_to_add = self.max_mp * (elapsed_seconds / 60.0)
 
-        # Регенерация MP (rate % от макс за минуту)
-        mp_to_add = (self.max_mp * (self.mp_regen_rate / 100.0)) * (elapsed_seconds / 60.0)
-        if mp_to_add > 0:
-            self.current_mp = min(float(self.max_mp), float(self.current_mp) + mp_to_add)
+        # Обновляем только если добавится хотя бы 1 целая единица или если прошло много времени
+        if hp_to_add >= 1 or mp_to_add >= 1:
+            if hp_to_add >= 1:
+                self.current_hp = min(self.max_hp, self.current_hp + int(hp_to_add))
+            if mp_to_add >= 1:
+                self.current_mp = min(self.max_mp, self.current_mp + int(mp_to_add))
+
+            # Сдвигаем время на количество "использованных" секунд
+            # Чтобы не терять дробную часть времени
+            used_seconds = 0
+            if hp_to_add >= 1:
+                used_seconds = (int(hp_to_add) / self.max_hp) * 60.0
+            elif mp_to_add >= 1:
+                used_seconds = (int(mp_to_add) / self.max_mp) * 60.0
+
+            # Но проще просто обновить до now если мы добавили хоть что-то
+            self.last_resource_update = now
 
     def get_wallet_summary(self):
         return {
@@ -616,23 +635,25 @@ class Item(models.Model):
         ('dagger', 'Кинжалы'),
         ('mace', 'Дубины'),
         ('staff', 'Посохи'),
+        ('orb', 'Сферы'),
     ]
     
     ARMOR_SUBTYPES = [
         ('helmet', 'Шлемы'),
         ('chest', 'Нагрудники'),
         ('pants', 'Штаны'),
-        ('short', 'Рубашка'),
+        ('shirt', 'Рубашка'),
         ('gloves', 'Перчатки'),
         ('bracers', 'Наручи'),
         ('boots', 'Ботинки'),
         ('belt', 'Пояса'),
         ('shield', 'Щиты'),
+        ('plash', 'Плащи'),
     ]
     
     JEWELRY_SUBTYPES = [
         ('necklace', 'Ожерелья'),
-        ('earring', 'Серьги'),
+        ('earrings', 'Серьги'),
         ('ring', 'Кольца'),
         ('bracelet', 'Браслеты'),
     ]
@@ -641,6 +662,7 @@ class Item(models.Model):
     description = models.TextField()
     type = models.CharField(max_length=10, choices=ITEM_TYPES)
     subtype = models.CharField(max_length=10)
+    is_quest = models.BooleanField(default=False)
     image = models.ImageField(upload_to='items/', null=True, blank=True)
     is_stackable = models.BooleanField(default=False)
     max_stack = models.IntegerField(default=1)
@@ -743,6 +765,7 @@ class InventoryItem(models.Model):
     current_durability = models.IntegerField(default=100)
     max_durability = models.IntegerField(default=100)
     is_equipped = models.BooleanField(default=False)
+    equipped_slot = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -753,7 +776,7 @@ class InventoryItem(models.Model):
     
     def can_equip(self):
         """Можно ли надеть предмет"""
-        return self.item.type in ['weapon', 'armor', 'jewelry']
+        return self.item.type in ['weapon', 'armor', 'jewelry', 'potion']
     
     def get_equipment_slot(self):
         """Возвращает слот экипировки для этого предмета"""
@@ -916,7 +939,8 @@ class Monster(models.Model):
     crit_chance = models.IntegerField(default=5)
     dodge_chance = models.IntegerField(default=5)
     armor = models.IntegerField(default=0)
-    xp_reward = models.IntegerField(default=10)
+    xp_reward_min = models.IntegerField(default=10)
+    xp_reward_max = models.IntegerField(default=20)
     coin_reward = models.IntegerField(default=1)
     image = models.ImageField(upload_to='monsters/', null=True, blank=True)
 

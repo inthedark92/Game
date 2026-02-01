@@ -102,10 +102,7 @@ def calculate_damage(attacker_stats, defender_stats, attack_zone, defense_zones)
         result_type = "crit"
 
     # 6. Урон
-    base_damage = random.randint(attacker_stats.get('damage_min', 1), attacker_stats.get('damage_max', 5))
-    # Бонус от силы: +10% за каждую единицу силы выше 3
-    strength = attacker_stats.get('strength', 3)
-    damage = base_damage * (1 + (max(0, strength - 3) * 0.1))
+    damage = random.randint(attacker_stats.get('damage_min', 1), attacker_stats.get('damage_max', 5))
 
     if is_crit:
         damage *= 2
@@ -239,7 +236,8 @@ def monster_to_dict(monster_obj):
         'crit_chance': monster_obj.crit_chance,
         'dodge_chance': monster_obj.dodge_chance,
         'armor': monster_obj.armor,
-        'xp_reward': monster_obj.xp_reward,
+        'xp_reward_min': monster_obj.xp_reward_min,
+        'xp_reward_max': monster_obj.xp_reward_max,
         'coin_reward': monster_obj.coin_reward
     }
 
@@ -265,7 +263,10 @@ def finish_battle(combat_obj, player_profile):
     """Завершение боя и выдача наград"""
     state = combat_obj.state
     if state['status'] == 'victory':
-        xp = state['monster'].get('xp_reward', 10)
+        xp_min = state['monster'].get('xp_reward_min', 10)
+        xp_max = state['monster'].get('xp_reward_max', 20)
+        xp = random.randint(xp_min, xp_max)
+
         gold = state['monster'].get('coin_reward', 5)
 
         player_profile.gain_experience(xp)

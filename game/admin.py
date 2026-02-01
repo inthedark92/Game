@@ -7,6 +7,7 @@ from .models import (
 
 class InventoryItemInline(admin.TabularInline):
     model = InventoryItem
+    fields = ['item', 'is_equipped', 'equipped_slot', 'quantity', 'durability_current', 'durability_max']
     extra = 1
 
 class PlayerProfileAdmin(admin.ModelAdmin):
@@ -24,18 +25,18 @@ class PlayerProfileAdmin(admin.ModelAdmin):
             'fields': ('strength_base', 'agility_base', 'intuition_base', 'endurance_base', 'intelligence_base', 'wisdom_base', 'spirit_base')
         }),
         ('HP/MP', {
-            'fields': ('current_hp', 'max_hp', 'current_mp', 'max_mp', 'hp_regen_rate', 'mp_regen_rate')
+            'fields': ('current_hp', 'max_hp', 'current_mp', 'max_mp', 'hp_regen_rate', 'mp_regen_rate', 'last_resource_update')
         }),
     )
 
 class MonsterAdmin(admin.ModelAdmin):
-    list_display = ['name', 'level', 'hp', 'xp_reward', 'coin_reward']
+    list_display = ['name', 'level', 'hp', 'xp_reward_min', 'xp_reward_max', 'coin_reward']
     list_filter = ['level']
     search_fields = ['name']
 
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ['name', 'type', 'subtype', 'require_level', 'base_price']
-    list_filter = ['type', 'subtype', 'require_level']
+    list_display = ['name', 'type', 'subtype', 'is_quest', 'require_level', 'base_price']
+    list_filter = ['type', 'subtype', 'is_quest', 'require_level']
     search_fields = ['name']
 
 class ShopItemAdmin(admin.ModelAdmin):
@@ -83,10 +84,15 @@ class TransactionAdmin(admin.ModelAdmin):
         except PriceSettings.DoesNotExist:
             pass
 
+class InventoryItemAdmin(admin.ModelAdmin):
+    list_display = ['owner', 'item', 'is_equipped', 'equipped_slot', 'quantity']
+    list_filter = ['is_equipped', 'equipped_slot']
+    search_fields = ['owner__name', 'item__name']
+
 # Register models
 admin.site.register(PlayerProfile, PlayerProfileAdmin)
 admin.site.register(Item, ItemAdmin)
-admin.site.register(InventoryItem)
+admin.site.register(InventoryItem, InventoryItemAdmin)
 admin.site.register(ShopItem, ShopItemAdmin)
 admin.site.register(Combat)
 admin.site.register(TavernItem, TavernItemAdmin)

@@ -1,0 +1,262 @@
+Watching for file changes with StatReloader
+[01/Feb/2026 14:45:12] "GET / HTTP/1.1" 302 0
+[01/Feb/2026 14:45:13] "GET /login/ HTTP/1.1" 200 21606
+[01/Feb/2026 14:45:13] "GET /static/img/fon-login.jpg HTTP/1.1" 200 3320570
+[01/Feb/2026 14:45:16] "POST /login/ HTTP/1.1" 302 0
+[01/Feb/2026 14:45:17] "GET /game/ HTTP/1.1" 200 276654
+[01/Feb/2026 14:45:17] "GET /static/css/game_home.css HTTP/1.1" 200 938
+[01/Feb/2026 14:45:17] "GET /static/img/zal.png HTTP/1.1" 200 182824
+[01/Feb/2026 14:45:17] "GET /static/css/top_panel.css HTTP/1.1" 200 1587
+[01/Feb/2026 14:45:17] "GET /static/css/location_panel.css HTTP/1.1" 200 6160
+[01/Feb/2026 14:45:17] "GET /static/css/main_panel.css HTTP/1.1" 200 2962
+[01/Feb/2026 14:45:17] "GET /static/css/combat.css HTTP/1.1" 200 4359
+[01/Feb/2026 14:45:17] "GET /static/css/character_panel.css HTTP/1.1" 200 2010
+[01/Feb/2026 14:45:17] "GET /static/js/character_panel.js HTTP/1.1" 200 2379
+[01/Feb/2026 14:45:17] "GET /static/css/shop_panel.css HTTP/1.1" 200 9989
+[01/Feb/2026 14:45:17] "GET /static/css/inventory_panel.css HTTP/1.1" 200 11321
+[01/Feb/2026 14:45:17] "GET /static/css/equipment_panel.css HTTP/1.1" 200 4207
+[01/Feb/2026 14:45:17] "GET /static/css/clan_panel.css HTTP/1.1" 200 4983
+[01/Feb/2026 14:45:17] "GET /static/css/arena_panel.css HTTP/1.1" 200 2632
+[01/Feb/2026 14:45:17] "GET /static/css/tavern_panel.css HTTP/1.1" 200 6268
+[01/Feb/2026 14:45:17] "GET /static/img/clan_logo.png HTTP/1.1" 404 1978
+[01/Feb/2026 14:45:17] "GET /static/img/alliance_emblem.png HTTP/1.1" 404 1996
+[01/Feb/2026 14:45:17] "GET /static/img/back_fon.png HTTP/1.1" 200 29725
+[01/Feb/2026 14:45:17] "GET /static/img/kompas.png HTTP/1.1" 200 242114
+[01/Feb/2026 14:45:17] "GET /static/img/main.png HTTP/1.1" 200 227867
+[01/Feb/2026 14:45:17] "GET /static/img/main3.png HTTP/1.1" 200 91716
+[01/Feb/2026 14:45:17] "GET /static/img/banner.svg HTTP/1.1" 200 7172
+[01/Feb/2026 14:45:17] "GET /static/img/top1.png HTTP/1.1" 200 66335
+[01/Feb/2026 14:45:17] "GET /static/css/trade_panel.css HTTP/1.1" 200 7171
+[01/Feb/2026 14:45:17] "GET /static/img/chat.png HTTP/1.1" 200 2491817
+[01/Feb/2026 14:45:17] "GET /static/css/bank_panel.css HTTP/1.1" 200 10678
+[01/Feb/2026 14:45:17] "GET /static/css/chat_panel.css HTTP/1.1" 200 8745
+[01/Feb/2026 14:45:17] "GET /static/css/online_panel.css HTTP/1.1" 200 1161
+[01/Feb/2026 14:45:17] "GET /static/js/chat_panel.js HTTP/1.1" 200 18981
+[01/Feb/2026 14:45:17] "GET /static/img/info.png HTTP/1.1" 404 1963
+[01/Feb/2026 14:45:17] "GET /static/img/obraz/skin.png HTTP/1.1" 200 168697
+[01/Feb/2026 14:45:17] "GET /static/img/info.png HTTP/1.1" 404 1963
+[01/Feb/2026 14:45:17] "GET /static/img/chat3.png HTTP/1.1" 200 8894
+[01/Feb/2026 14:45:17] "GET /static/img/chat4.png HTTP/1.1" 200 204174
+[01/Feb/2026 14:45:17] "GET /static/img/chat2.png HTTP/1.1" 200 3411928
+[01/Feb/2026 14:45:17] "GET /static/img/locations/market.jpg HTTP/1.1" 200 55624
+[01/Feb/2026 14:45:17] "GET /api/inventory/?page=1&filter=all HTTP/1.1" 200 3736
+[01/Feb/2026 14:45:17] "GET /api/online_players/?tab=location HTTP/1.1" 200 107
+[01/Feb/2026 14:45:17] "GET /api/shop/items/ HTTP/1.1" 200 943
+[01/Feb/2026 14:45:17] "GET /chat/get_messages/?tab=world&last_id=0 HTTP/1.1" 200 2165
+[01/Feb/2026 14:45:17] "GET /static/img/default_item.png HTTP/1.1" 200 366658
+[01/Feb/2026 14:45:17] "GET /tavern/menu/ HTTP/1.1" 200 366
+[01/Feb/2026 14:45:17] "GET /api/equipment/ HTTP/1.1" 200 33
+[01/Feb/2026 14:45:17] "GET /media/items/kn_010_0.gif HTTP/1.1" 200 3811
+[01/Feb/2026 14:45:17] "GET /media/tavern_items/722912-e4d206eb95a4d3465360f47aa7721c7c_PT8TA1T.jpg HTTP/1.1" 200 262144
+[01/Feb/2026 14:45:17] "GET /game/inventory/ HTTP/1.1" 200 30310
+[01/Feb/2026 14:45:17] "GET /api/inventory/?page=1&filter=all HTTP/1.1" 200 3736
+[01/Feb/2026 14:45:18] "GET /api/equipment/ HTTP/1.1" 200 33
+[01/Feb/2026 14:45:18] "POST /api/inventory/equip/ HTTP/1.1" 200 132
+[01/Feb/2026 14:45:20] "POST /api/inventory/equip/ HTTP/1.1" 200 132
+/app/game/admin.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 01, 2026 - 14:45:11
+Django version 6.0.1, using settings 'combats_clone.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Tab: location, User: admin
+Found 1 online players
+Returning data: [{'name': '', 'level': 0, 'classification': '', 'is_me': True}]
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 134, in inner_run
+    self.check(**check_kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/base.py", line 573, in check
+    raise SystemCheckError(msg)
+django.core.management.base.SystemCheckError: SystemCheckError: System check identified some issues:
+
+ERRORS:
+<class 'game.admin.InventoryItemAdmin'>: (admin.E108) The value of 'list_display[0]' refers to 'player', which is not a callable or attribute of 'InventoryItemAdmin', or an attribute, method, or field on 'game.InventoryItem'.
+
+System check identified 1 issue (0 silenced).
+/app/game/models.py changed, reloading.
+Performing system checks...
+
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 134, in inner_run
+    self.check(**check_kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/base.py", line 573, in check
+    raise SystemCheckError(msg)
+django.core.management.base.SystemCheckError: SystemCheckError: System check identified some issues:
+
+ERRORS:
+<class 'game.admin.InventoryItemAdmin'>: (admin.E108) The value of 'list_display[0]' refers to 'player', which is not a callable or attribute of 'InventoryItemAdmin', or an attribute, method, or field on 'game.InventoryItem'.
+
+System check identified 1 issue (0 silenced).
+/app/game/admin.py changed, reloading.
+Performing system checks...
+
+Watching for file changes with StatReloader
+/app/game/middleware.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 01, 2026 - 14:47:33
+Django version 6.0.1, using settings 'combats_clone.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/app/game/admin.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 01, 2026 - 14:47:54
+Django version 6.0.1, using settings 'combats_clone.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/app/game/models.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 01, 2026 - 14:47:57
+Django version 6.0.1, using settings 'combats_clone.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/app/game/models.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 01, 2026 - 15:03:24
+Django version 6.0.1, using settings 'combats_clone.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+/app/game/models.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+February 01, 2026 - 15:03:33
+Django version 6.0.1, using settings 'combats_clone.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 134, in inner_run
+    self.check(**check_kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/base.py", line 573, in check
+    raise SystemCheckError(msg)
+django.core.management.base.SystemCheckError: SystemCheckError: System check identified some issues:
+
+ERRORS:
+<class 'game.admin.MonsterAdmin'>: (admin.E108) The value of 'list_display[3]' refers to 'xp_reward', which is not a callable or attribute of 'MonsterAdmin', or an attribute, method, or field on 'game.Monster'.
+
+System check identified 1 issue (0 silenced).
+/app/game/combat_logic.py changed, reloading.
+Performing system checks...
+
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 134, in inner_run
+    self.check(**check_kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/base.py", line 573, in check
+    raise SystemCheckError(msg)
+django.core.management.base.SystemCheckError: SystemCheckError: System check identified some issues:
+
+ERRORS:
+<class 'game.admin.MonsterAdmin'>: (admin.E108) The value of 'list_display[3]' refers to 'xp_reward', which is not a callable or attribute of 'MonsterAdmin', or an attribute, method, or field on 'game.Monster'.
+
+System check identified 1 issue (0 silenced).
+/app/game/views.py changed, reloading.
+Performing system checks...
+
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 134, in inner_run
+    self.check(**check_kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/base.py", line 573, in check
+    raise SystemCheckError(msg)
+django.core.management.base.SystemCheckError: SystemCheckError: System check identified some issues:
+
+ERRORS:
+<class 'game.admin.MonsterAdmin'>: (admin.E108) The value of 'list_display[3]' refers to 'xp_reward', which is not a callable or attribute of 'MonsterAdmin', or an attribute, method, or field on 'game.Monster'.
+
+System check identified 1 issue (0 silenced).
+/app/game/combat_logic.py changed, reloading.
+Performing system checks...
+
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/commands/runserver.py", line 134, in inner_run
+    self.check(**check_kwargs)
+  File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/django/core/management/base.py", line 573, in check
+    raise SystemCheckError(msg)
+django.core.management.base.SystemCheckError: SystemCheckError: System check identified some issues:
+
+ERRORS:
+<class 'game.admin.MonsterAdmin'>: (admin.E108) The value of 'list_display[3]' refers to 'xp_reward', which is not a callable or attribute of 'MonsterAdmin', or an attribute, method, or field on 'game.Monster'.
+
+System check identified 1 issue (0 silenced).
+/app/game/admin.py changed, reloading.
+Performing system checks...
+
+Watching for file changes with StatReloader
