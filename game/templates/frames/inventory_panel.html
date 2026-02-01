@@ -99,12 +99,20 @@
                 { name: 'Вся броня', value: null },
                 { name: 'Шлемы', value: 'helmet' },
                 { name: 'Нагрудники', value: 'chest' },
-                { name: 'Поножи', value: 'leggings' }
+                { name: 'Рубашки', value: 'short' },
+                { name: 'Перчатки', value: 'gloves' },
+                { name: 'Наручи', value: 'bracers' },
+                { name: 'Пояса', value: 'belt' },
+                { name: 'Штаны', value: 'pants' },
+                { name: 'Ботинки', value: 'boots' },
+                { name: 'Щиты', value: 'shield' }
             ],
             jewelry: [
                 { name: 'Все украшения', value: null },
                 { name: 'Кольца', value: 'ring' },
-                { name: 'Амулеты', value: 'amulet' }
+                { name: 'Ожерелья', value: 'necklace' },
+                { name: 'Серьги', value: 'earring' },
+                { name: 'Браслеты', value: 'bracelet' }
             ],
             potions: [
                 { name: 'Все Эликсиры', value: null },
@@ -126,6 +134,7 @@
                     renderPagination(data.total_pages);
                     updateSlotsInfo(data);
                     updateActiveTabs();
+                    loadEquipmentData(); // Загружаем экипировку при каждом обновлении инвентаря
                 })
                 .catch(error => {
                     console.error('Error loading inventory:', error);
@@ -229,6 +238,73 @@
                     loadInventoryData(currentPage, invCurrentFilter, invCurrentSubFilter);
                 } else {
                     alert(result.message);
+                }
+            });
+        }
+
+        // Загрузка данных экипировки
+        function loadEquipmentData() {
+            fetch('/api/equipment/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderEquipment(data.equipped);
+                    }
+                });
+        }
+
+        // Отрисовка экипировки
+        function renderEquipment(equipped) {
+            // Очищаем все слоты
+            document.querySelectorAll('.equipment-slot').forEach(slot => {
+                // Сохраняем оригинальное название если оно там есть
+                if (!slot.dataset.originalLabel) {
+                    slot.dataset.originalLabel = slot.textContent;
+                }
+                slot.innerHTML = slot.dataset.originalLabel;
+                slot.classList.remove('has-item');
+                slot.onclick = null;
+            });
+
+            const ringSlots = ['ring-1', 'ring-2', 'ring-3', 'ring-4', 'ring-5', 'ring-6'];
+            const braceletSlots = ['bracelet-1', 'bracelet-2'];
+            const earringSlots = ['earrings']; // matches slot-earrings
+            let ringIdx = 0;
+            let braceletIdx = 0;
+            let earringIdx = 0;
+
+            equipped.forEach(item => {
+                let slotClass = '';
+
+                if (item.subtype === 'ring') {
+                    if (ringIdx < ringSlots.length) {
+                        slotClass = `slot-${ringSlots[ringIdx++]}`;
+                    }
+                } else if (item.subtype === 'bracelet') {
+                    if (braceletIdx < braceletSlots.length) {
+                        slotClass = `slot-${braceletSlots[braceletIdx++]}`;
+                    }
+                } else if (item.subtype === 'earring') {
+                    slotClass = 'slot-earrings'; // В UI earrings во множественном
+                } else if (item.subtype === 'short') {
+                    slotClass = 'slot-shirt'; // В UI shirt, в БД short
+                } else if (item.slot === 'weapon') {
+                    // Ищем свободную руку
+                    const leftHand = document.querySelector('.slot-left-hand');
+                    if (!leftHand.classList.contains('has-item')) {
+                        slotClass = 'slot-left-hand';
+                    } else {
+                        slotClass = 'slot-right-hand';
+                    }
+                } else {
+                    slotClass = `slot-${item.slot}`;
+                }
+
+                const slotEl = document.querySelector(`.${slotClass}`);
+                if (slotEl) {
+                    slotEl.innerHTML = `<img src="${item.image}" alt="${item.name}" title="${item.name}">`;
+                    slotEl.classList.add('has-item');
+                    slotEl.onclick = () => unequipItem(item.id);
                 }
             });
         }

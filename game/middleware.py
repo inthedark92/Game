@@ -7,18 +7,18 @@ class UpdateLastOnlineMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
-        
         if request.user.is_authenticated:
             try:
-                # Обновляем время последней активности
-                PlayerProfile.objects.filter(user=request.user).update(
-                    last_online=timezone.now()
-                )
+                # Получаем профиль и обновляем ресурсы до обработки запроса
+                profile = PlayerProfile.objects.filter(user=request.user).first()
+                if profile:
+                    profile.update_resources()
+                    # last_online обновится автоматически при save() благодаря auto_now=True
+                    profile.save()
             except Exception as e:
-                # Логируем ошибку, но не прерываем выполнение
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.error(f"Error updating last_online: {str(e)}")
+                logger.error(f"Error in UpdateLastOnlineMiddleware: {str(e)}")
         
+        response = self.get_response(request)
         return response

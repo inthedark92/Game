@@ -444,6 +444,27 @@ class PlayerProfile(models.Model):
 
         self.save()
 
+    def update_resources(self):
+        """Регенерация HP и MP на основе прошедшего времени"""
+        now = timezone.now()
+        if not self.last_online:
+            self.last_online = now
+            return
+
+        elapsed_seconds = (now - self.last_online).total_seconds()
+        if elapsed_seconds <= 1: # Минимум 1 секунда для расчета
+            return
+
+        # Регенерация HP (rate % от макс за минуту)
+        hp_to_add = (self.max_hp * (self.hp_regen_rate / 100.0)) * (elapsed_seconds / 60.0)
+        if hp_to_add > 0:
+            self.current_hp = min(float(self.max_hp), float(self.current_hp) + hp_to_add)
+
+        # Регенерация MP (rate % от макс за минуту)
+        mp_to_add = (self.max_mp * (self.mp_regen_rate / 100.0)) * (elapsed_seconds / 60.0)
+        if mp_to_add > 0:
+            self.current_mp = min(float(self.max_mp), float(self.current_mp) + mp_to_add)
+
     def get_wallet_summary(self):
         return {
             'coins': self.coins,

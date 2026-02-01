@@ -306,6 +306,28 @@ def trade_panel(request):
 
 @login_required
 @require_http_methods(["GET"])
+def api_equipment(request):
+    try:
+        profile = PlayerProfile.objects.get(user=request.user)
+        equipped_items = InventoryItem.objects.filter(owner=profile, is_equipped=True).select_related('item')
+
+        data = []
+        for inv_item in equipped_items:
+            data.append({
+                'id': inv_item.id,
+                'slot': inv_item.get_equipment_slot(),
+                'subtype': inv_item.item.subtype,
+                'name': inv_item.item.name,
+                'image': inv_item.item.image.url if inv_item.item.image else '/static/img/default_item.png',
+            })
+
+        return JsonResponse({'success': True, 'equipped': data})
+    except Exception as e:
+        logger.error(f"Error in api_equipment: {str(e)}", exc_info=True)
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@login_required
+@require_http_methods(["GET"])
 def inventory_api(request):
     try:
         profile = PlayerProfile.objects.get(user=request.user)
@@ -313,7 +335,7 @@ def inventory_api(request):
         filter_type = request.GET.get('filter', 'all')
         subfilter = request.GET.get('subfilter', None)
         
-        items_per_page = 50
+        items_per_page = 48
         start_index = (page - 1) * items_per_page
         total_slots = profile.get_total_inventory_slots()
         
@@ -542,16 +564,40 @@ def equip_item(request):
         
         equipment_slot = item.get_equipment_slot()
         
-        # Проверяем, не надет ли уже предмет в этот слот
-        equipped_in_slot = InventoryItem.objects.filter(
+        # Находим все надетые предметы
+        equipped_items = InventoryItem.objects.filter(
             owner=profile, 
             is_equipped=True
-        ).select_related('item').first()
+        ).select_related('item')
         
-        # Если есть надетый предмет в этом слоте, снимаем его
-        if equipped_in_slot and equipped_in_slot.get_equipment_slot() == equipment_slot:
-            equipped_in_slot.is_equipped = False
-            equipped_in_slot.save()
+        # Снимаем предметы, занимающие тот же слот
+        if equipment_slot == 'weapon':
+            # Для оружия разрешаем 2 предмета
+            currently_equipped_weapons = equipped_items.filter(item__type='weapon')
+            if currently_equipped_weapons.count() >= 2:
+                first_w = currently_equipped_weapons.first()
+                first_w.is_equipped = False
+                first_w.save()
+        elif equipment_slot == 'ring':
+            # Для колец разрешаем 6 предметов
+            currently_equipped_rings = equipped_items.filter(item__subtype='ring')
+            if currently_equipped_rings.count() >= 6:
+                first_r = currently_equipped_rings.first()
+                first_r.is_equipped = False
+                first_r.save()
+        elif equipment_slot == 'bracelet':
+            # Для браслетов разрешаем 2 предмета
+            currently_equipped_bracelets = equipped_items.filter(item__subtype='bracelet')
+            if currently_equipped_bracelets.count() >= 2:
+                first_b = currently_equipped_bracelets.first()
+                first_b.is_equipped = False
+                first_b.save()
+        else:
+            # Для остальных слотов - только один предмет
+            for equipped_item in equipped_items:
+                if equipped_item.get_equipment_slot() == equipment_slot:
+                    equipped_item.is_equipped = False
+                    equipped_item.save()
         
         # Надеваем новый предмет
         item.is_equipped = True
@@ -569,6 +615,68 @@ def equip_item(request):
     except Exception as e:
         logger.error(f"Error in equip_item: {str(e)}", exc_info=True)
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_http_methods(["GET"])
+def api_inventory_item_details(request, item_id):
+    """Получить детальную информацию о предмете в инвентаре"""
+    try:
+        profile = PlayerProfile.objects.get(user=request.user)
+        inv_item = InventoryItem.objects.select_related('item').get(id=item_id, owner=profile)
+
+        item = inv_item.item
+
+        # Формируем характеристики
+        stats = {}
+        if item.bonus_strength: stats['Сила'] = item.bonus_strength
+        if item.bonus_agility: stats['Ловкость'] = item.bonus_agility
+        if item.bonus_intuition: stats['Интуиция'] = item.bonus_intuition
+        if item.bonus_endurance: stats['Выносливость'] = item.bonus_endurance
+        if item.bonus_intelligence: stats['Интеллект'] = item.bonus_intelligence
+        if item.bonus_wisdom: stats['Мудрость'] = item.bonus_wisdom
+        if item.bonus_spirit: stats['Дух'] = item.bonus_spirit
+
+        if item.bonus_phys_damage_min or item.bonus_phys_damage_max:
+            stats['Урон'] = f"{item.bonus_phys_damage_min}-{item.bonus_phys_damage_max}"
+
+        # Формируем требования
+        requirements = {}
+        if item.require_level: requirements['Уровень'] = item.require_level
+        if item.require_strength: requirements['Сила'] = item.require_strength
+        if item.require_agility: requirements['Ловкость'] = item.require_agility
+        if item.require_intuition: requirements['Интуиция'] = item.require_intuition
+        if item.require_endurance: requirements['Выносливость'] = item.require_endurance
+
+        data = {
+            'id': inv_item.id,
+            'item_instance': {
+                'id': inv_item.id,
+                'item': {
+                    'id': item.id,
+                    'name': item.name,
+                    'type': item.type,
+                    'subtype': item.subtype,
+                    'image': item.image.url if item.image else '/static/img/default_item.png',
+                    'is_stackable': item.is_stackable,
+                    'description': item.description,
+                },
+                'quantity': inv_item.quantity,
+                'durability': {
+                    'current': inv_item.current_durability,
+                    'max': inv_item.max_durability
+                },
+                'is_equipped': inv_item.is_equipped,
+                'stats': stats,
+                'requirements': requirements
+            }
+        }
+
+        return JsonResponse(data)
+    except InventoryItem.DoesNotExist:
+        return JsonResponse({'error': 'Предмет не найден'}, status=404)
+    except Exception as e:
+        logger.error(f"Error in api_inventory_item_details: {str(e)}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 @require_http_methods(["POST"])
