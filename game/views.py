@@ -339,8 +339,8 @@ def inventory_api(request):
         start_index = (page - 1) * items_per_page
         total_slots = profile.get_total_inventory_slots()
         
-        # Получаем предметы из инвентаря
-        inventory_items = InventoryItem.objects.filter(owner=profile).select_related('item')
+        # Получаем предметы из инвентаря (только те, что не надеты)
+        inventory_items = InventoryItem.objects.filter(owner=profile, is_equipped=False).select_related('item')
         
         # Применяем фильтры
         if filter_type != 'all':
@@ -546,65 +546,66 @@ def equip_item(request):
         data = json.loads(request.body)
         item_id = data.get('item_id')
         
-        profile = PlayerProfile.objects.get(user=request.user)
-        
-        # Находим предмет
-        try:
-            item = InventoryItem.objects.get(id=item_id, owner=profile)
-        except InventoryItem.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'Предмет не найден'})
-        
-        # Проверяем, можно ли надеть
-        if not item.can_equip():
-            return JsonResponse({'success': False, 'message': 'Этот предмет нельзя надеть'})
-        
-        # Проверяем уровень
-        if item.item.require_level > profile.level:
-            return JsonResponse({'success': False, 'message': f'Требуется уровень {item.item.require_level}'})
-        
-        equipment_slot = item.get_equipment_slot()
-        
-        # Находим все надетые предметы
-        equipped_items = InventoryItem.objects.filter(
-            owner=profile, 
-            is_equipped=True
-        ).select_related('item')
-        
-        # Снимаем предметы, занимающие тот же слот
-        if equipment_slot == 'weapon':
-            # Для оружия разрешаем 2 предмета
-            currently_equipped_weapons = equipped_items.filter(item__type='weapon')
-            if currently_equipped_weapons.count() >= 2:
-                first_w = currently_equipped_weapons.first()
-                first_w.is_equipped = False
-                first_w.save()
-        elif equipment_slot == 'ring':
-            # Для колец разрешаем 6 предметов
-            currently_equipped_rings = equipped_items.filter(item__subtype='ring')
-            if currently_equipped_rings.count() >= 6:
-                first_r = currently_equipped_rings.first()
-                first_r.is_equipped = False
-                first_r.save()
-        elif equipment_slot == 'bracelet':
-            # Для браслетов разрешаем 2 предмета
-            currently_equipped_bracelets = equipped_items.filter(item__subtype='bracelet')
-            if currently_equipped_bracelets.count() >= 2:
-                first_b = currently_equipped_bracelets.first()
-                first_b.is_equipped = False
-                first_b.save()
-        else:
-            # Для остальных слотов - только один предмет
-            for equipped_item in equipped_items:
-                if equipped_item.get_equipment_slot() == equipment_slot:
-                    equipped_item.is_equipped = False
-                    equipped_item.save()
-        
-        # Надеваем новый предмет
-        item.is_equipped = True
-        item.save()
-        
-        # Обновляем характеристики персонажа
-        profile.update_stats_from_equipment()
+        with transaction.atomic():
+            profile = PlayerProfile.objects.select_for_update().get(user=request.user)
+
+            # Находим предмет
+            try:
+                item = InventoryItem.objects.select_for_update().get(id=item_id, owner=profile)
+            except InventoryItem.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Предмет не найден'})
+
+            # Проверяем, можно ли надеть
+            if not item.can_equip():
+                return JsonResponse({'success': False, 'message': 'Этот предмет нельзя надеть'})
+
+            # Проверяем уровень
+            if item.item.require_level > profile.level:
+                return JsonResponse({'success': False, 'message': f'Требуется уровень {item.item.require_level}'})
+
+            equipment_slot = item.get_equipment_slot()
+
+            # Находим все надетые предметы
+            equipped_items = InventoryItem.objects.filter(
+                owner=profile,
+                is_equipped=True
+            ).select_related('item').select_for_update()
+
+            # Снимаем предметы, занимающие тот же слот
+            if equipment_slot == 'weapon':
+                # Для оружия разрешаем 2 предмета
+                currently_equipped_weapons = equipped_items.filter(item__type='weapon')
+                if currently_equipped_weapons.count() >= 2:
+                    first_w = currently_equipped_weapons.first()
+                    first_w.is_equipped = False
+                    first_w.save()
+            elif equipment_slot == 'ring':
+                # Для колец разрешаем 6 предметов
+                currently_equipped_rings = equipped_items.filter(item__subtype='ring')
+                if currently_equipped_rings.count() >= 6:
+                    first_r = currently_equipped_rings.first()
+                    first_r.is_equipped = False
+                    first_r.save()
+            elif equipment_slot == 'bracelet':
+                # Для браслетов разрешаем 2 предмета
+                currently_equipped_bracelets = equipped_items.filter(item__subtype='bracelet')
+                if currently_equipped_bracelets.count() >= 2:
+                    first_b = currently_equipped_bracelets.first()
+                    first_b.is_equipped = False
+                    first_b.save()
+            else:
+                # Для остальных слотов - только один предмет
+                for equipped_item in equipped_items:
+                    if equipped_item.get_equipment_slot() == equipment_slot:
+                        equipped_item.is_equipped = False
+                        equipped_item.save()
+
+            # Надеваем новый предмет
+            item.is_equipped = True
+            item.save()
+
+            # Обновляем характеристики персонажа
+            profile.update_stats_from_equipment()
         
         return JsonResponse({
             'success': True, 
@@ -686,20 +687,21 @@ def unequip_item(request):
         data = json.loads(request.body)
         item_id = data.get('item_id')
         
-        profile = PlayerProfile.objects.get(user=request.user)
-        
-        # Находим предмет
-        try:
-            item = InventoryItem.objects.get(id=item_id, owner=profile, is_equipped=True)
-        except InventoryItem.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'Предмет не найден или не надет'})
-        
-        # Снимаем предмет
-        item.is_equipped = False
-        item.save()
-        
-        # Обновляем характеристики персонажа
-        profile.update_stats_from_equipment()
+        with transaction.atomic():
+            profile = PlayerProfile.objects.select_for_update().get(user=request.user)
+
+            # Находим предмет
+            try:
+                item = InventoryItem.objects.select_for_update().get(id=item_id, owner=profile, is_equipped=True)
+            except InventoryItem.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Предмет не найден или не надет'})
+
+            # Снимаем предмет
+            item.is_equipped = False
+            item.save()
+
+            # Обновляем характеристики персонажа
+            profile.update_stats_from_equipment()
         
         return JsonResponse({
             'success': True, 
@@ -709,6 +711,57 @@ def unequip_item(request):
     except Exception as e:
         logger.error(f"Error in unequip_item: {str(e)}", exc_info=True)
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_POST
+def api_use_item(request):
+    """Использовать предмет (зелье)"""
+    try:
+        data = json.loads(request.body)
+        item_id = data.get('item_id')
+
+        with transaction.atomic():
+            profile = PlayerProfile.objects.select_for_update().get(user=request.user)
+            inv_item = InventoryItem.objects.select_for_update().get(id=item_id, owner=profile)
+
+            if inv_item.item.type != 'potion':
+                return JsonResponse({'success': False, 'message': 'Этот предмет нельзя использовать'})
+
+            # Проверка уровня
+            if inv_item.item.require_level > profile.level:
+                return JsonResponse({'success': False, 'message': f'Требуется уровень {inv_item.item.require_level}'})
+
+            # Применение эффекта
+            hp_restored = inv_item.item.hp_restore
+            mp_restored = inv_item.item.mp_restore
+
+            if hp_restored:
+                profile.current_hp = min(profile.current_hp + hp_restored, profile.max_hp)
+            if mp_restored:
+                profile.current_mp = min(profile.current_mp + mp_restored, profile.max_mp)
+
+            # Уменьшение количества
+            inv_item.quantity -= 1
+            item_name = inv_item.item.name
+
+            if inv_item.quantity <= 0:
+                inv_item.delete()
+            else:
+                inv_item.save()
+
+            profile.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Вы использовали {item_name}',
+                'new_hp': profile.current_hp,
+                'new_mp': profile.current_mp
+            })
+    except InventoryItem.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Предмет не найден'})
+    except Exception as e:
+        logger.error(f"Error in api_use_item: {str(e)}", exc_info=True)
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 @csrf_exempt
 @require_http_methods(["GET"])

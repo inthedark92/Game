@@ -22,8 +22,8 @@
                 <div class="inv-filter-tab" data-filter="weapon">Оружие</div>
                 <div class="inv-filter-tab" data-filter="armor">Броня</div>
                 <div class="inv-filter-tab" data-filter="jewelry">Ювелирное</div>
-                <div class="inv-filter-tab" data-filter="potions">Эликсиры</div>
-                <div class="inv-filter-tab" data-filter="scrolls">Свитки</div>
+                <div class="inv-filter-tab" data-filter="potion">Эликсиры</div>
+                <div class="inv-filter-tab" data-filter="scroll">Свитки</div>
                 <div class="inv-filter-tab" data-filter="misc">Разное</div>
             </div>
             
@@ -66,6 +66,10 @@
                     </div>
                     <div class="inv-item-info-description" id="inv-item-info-description"></div>
                 </div>
+            </div>
+
+            <div id="inv-item-actions" class="inv-item-actions" style="text-align: center; margin-top: 10px;">
+                <!-- Кнопки действий (Использовать и т.д.) -->
             </div>
             
             <button class="inv-item-info-close" onclick="closeItemInfo()">×</button>
@@ -114,7 +118,7 @@
                 { name: 'Серьги', value: 'earring' },
                 { name: 'Браслеты', value: 'bracelet' }
             ],
-            potions: [
+            potion: [
                 { name: 'Все Эликсиры', value: null },
                 { name: 'Не боевые', value: 'nonbattle' },
                 { name: 'Боевые', value: 'battle' }
@@ -220,6 +224,27 @@
                 // Для неподходящих предметов показать информацию
                 showItemInfo(itemId);
             }
+        }
+
+        // Использовать предмет
+        function useItem(itemId) {
+            fetch('/api/inventory/use/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ item_id: itemId })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    closeItemInfo();
+                    loadInventoryData(currentPage, invCurrentFilter, invCurrentSubFilter);
+                } else {
+                    alert(result.message);
+                }
+            });
         }
 
         // Надеть предмет
@@ -384,6 +409,13 @@
                     // Заполняем описание
                     document.getElementById('inv-item-info-description').textContent = item.item.description || 'Нет описания';
                     
+                    // Добавляем кнопку использования если это зелье
+                    const actionsEl = document.getElementById('inv-item-actions');
+                    actionsEl.innerHTML = '';
+                    if (item.item.type === 'potion') {
+                        actionsEl.innerHTML = `<button class="inv-use-btn" onclick="useItem(${item.id})">Использовать</button>`;
+                    }
+
                     // Показываем панель
                     panel.style.display = 'block';
                 })
