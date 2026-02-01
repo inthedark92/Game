@@ -58,7 +58,7 @@ class PriceSettingsAdmin(admin.ModelAdmin):
         transactions = Transaction.objects.filter(resource_type=obj.resource_type)
         if transactions.exists():
             obj.average_price = transactions.aggregate(Avg('price'))['price__avg'] or 0
-        super(PriceSettingsAdmin, self).save_model(request, obj, form, change)
+        super().save_model(request, obj, form, change)
 
 class ExchangeRatesAdmin(admin.ModelAdmin):
     list_display = ['resource_type', 'rate', 'updated_at']
@@ -71,7 +71,7 @@ class TransactionAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         obj.total = obj.amount * obj.price
-        super(TransactionAdmin, self).save_model(request, obj, form, change)
+        super().save_model(request, obj, form, change)
         
         from django.db.models import Avg
         try:
