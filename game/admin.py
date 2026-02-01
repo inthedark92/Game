@@ -15,7 +15,7 @@ class PlayerProfileAdmin(admin.ModelAdmin):
     inlines = [InventoryItemInline]
     fieldsets = (
         ('Basic Info', {
-            'fields': ('user', 'name', 'level', 'sublevel', 'free_stats', 'classification', 'current_location')
+            'fields': ('user', 'name', 'level', 'sublevel', 'free_stats', 'classification')
         }),
         ('Currencies', {
             'fields': ('coins', 'silver', 'silver_dust', 'gold', 'gold_dust', 'marks', 'varangian_stones', 'magic_coins', 'valknut_tokens', 'ref_coins')
