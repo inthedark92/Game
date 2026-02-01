@@ -136,6 +136,9 @@ def handle_player_turn(combat_state, attack_zone, defense_zones):
 
     # 1. Игрок бьет монстра
     player_attacks = player.get('num_attacks', 1)
+    if 'total_damage_dealt' not in player:
+        player['total_damage_dealt'] = 0
+
     for i in range(player_attacks):
         dmg, res, _ = calculate_damage(
             attacker_stats={

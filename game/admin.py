@@ -1,7 +1,11 @@
 # admin.py
 from django.contrib import admin
 from django import forms
-from .models import PriceSettings, ExchangeRates, Transaction, Monster, PlayerProfile, InventoryItem, Item, ShopItem, Combat
+from .models import (
+    PriceSettings, ExchangeRates, Transaction, Monster, PlayerProfile,
+    InventoryItem, Item, ShopItem, Combat, TavernItem, ChatRoom, ChatMessage,
+    Alliance, PlayerClan, ClanMember, CurrencyTransaction
+)
 
 class InventoryItemInline(admin.TabularInline):
     model = InventoryItem
@@ -31,6 +35,13 @@ admin.site.register(Item)
 admin.site.register(InventoryItem)
 admin.site.register(ShopItem)
 admin.site.register(Combat)
+admin.site.register(TavernItem)
+admin.site.register(ChatRoom)
+admin.site.register(ChatMessage)
+admin.site.register(Alliance)
+admin.site.register(PlayerClan)
+admin.site.register(ClanMember)
+admin.site.register(CurrencyTransaction)
 
 class MonsterAdmin(admin.ModelAdmin):
     list_display = ['name', 'level', 'hp', 'xp_reward', 'coin_reward']

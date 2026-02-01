@@ -1,0 +1,30 @@
+{% extends 'game/base_nordic.html' %}
+{% block title %}Панель Администратора{% endblock %}
+
+{% block content %}
+<div style="padding: 20px;">
+    <h1>Панель управления игрой</h1>
+    <p>Добро пожаловать в панель администратора.</p>
+    <ul>
+        <li><a href="/admin/">Перейти в стандартную админку Django</a></li>
+    </ul>
+
+    <h2>Игроки</h2>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Level</th>
+        </tr>
+        {% for player in players %}
+        <tr>
+            <td>{{ player.id }}</td>
+            <td>{{ player.username }}</td>
+            <td>{{ player.playerprofile.name }}</td>
+            <td>{{ player.playerprofile.level }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

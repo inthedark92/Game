@@ -1,3 +1,4 @@
+{% extends 'game/base_nordic.html' %}
 {% load static %}
 
 {% block head %}
@@ -5,6 +6,7 @@
 <link rel="stylesheet" href="{% static 'css/combat.css' %}">
 {% endblock %}
 
+{% block content %}
 <div class="top-image"></div>
 
 <!-- 1. top_panel -->
@@ -113,7 +115,9 @@
         {% include 'frames/online_panel.html' %}
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
     <script>
         function toggleClanPanel() {
             const clanFrame = document.getElementById('clan-frame');
@@ -534,16 +538,22 @@
         ];
         
         panels.forEach(panel => {
-            const isOpen = localStorage.getItem(`${panel}PanelOpen`) === 'true';
-            if (isOpen) {
-                document.getElementById(`${panel}-frame`).style.display = 'block';
+            const frame = document.getElementById(`${panel}-frame`);
+            if (frame) {
+                const isOpen = localStorage.getItem(`${panel}PanelOpen`) === 'true';
+                if (isOpen) {
+                    frame.style.display = 'block';
+                }
             }
         });
 
         // Восстановление высоты чата
         const savedHeight = localStorage.getItem('chatSectionHeight');
         if (savedHeight) {
-            document.getElementById('chat-section').style.height = savedHeight + 'px';
+            const chatSection = document.getElementById('chat-section');
+            if (chatSection) {
+                chatSection.style.height = savedHeight + 'px';
+            }
         }
     });
 
@@ -551,51 +561,54 @@
         const resizeHandle = document.querySelector('.resize-handle');
         const chatSection = document.getElementById('chat-section');
         
-        let isResizing = false;
-        let startY, startHeight;
-        
-        resizeHandle.addEventListener('mousedown', function(e) {
-            isResizing = true;
-            startY = e.clientY;
-            startHeight = parseInt(document.defaultView.getComputedStyle(chatSection).height, 10);
-            document.body.style.cursor = 'row-resize';
-            document.body.style.userSelect = 'none';
-            e.preventDefault();
-        });
-        
-        document.addEventListener('mousemove', function(e) {
-            if (!isResizing) return;
+        if (resizeHandle && chatSection) {
+            let isResizing = false;
+            let startY, startHeight;
             
-            const dy = e.clientY - startY;
-            let newHeight = startHeight - dy;
+            resizeHandle.addEventListener('mousedown', function(e) {
+                isResizing = true;
+                startY = e.clientY;
+                startHeight = parseInt(document.defaultView.getComputedStyle(chatSection).height, 10);
+                document.body.style.cursor = 'row-resize';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            });
             
-            // Ограничиваем минимальную и максимальную высоту
-            newHeight = Math.max(100, newHeight);
-            newHeight = Math.min(window.innerHeight * 0.7, newHeight);
-            
-            chatSection.style.height = newHeight + 'px';
-        });
-        
-        document.addEventListener('mouseup', function() {
-            if (isResizing) {
-                isResizing = false;
-                document.body.style.cursor = '';
-                document.body.style.userSelect = '';
+            document.addEventListener('mousemove', function(e) {
+                if (!isResizing) return;
                 
-                // Сохраняем текущую высоту в localStorage
-                const currentHeight = parseInt(chatSection.style.height, 10);
-                localStorage.setItem('chatSectionHeight', currentHeight);
-            }
-        });
+                const dy = e.clientY - startY;
+                let newHeight = startHeight - dy;
+
+                // Ограничиваем минимальную и максимальную высоту
+                newHeight = Math.max(100, newHeight);
+                newHeight = Math.min(window.innerHeight * 0.7, newHeight);
+
+                chatSection.style.height = newHeight + 'px';
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isResizing) {
+                    isResizing = false;
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+
+                    // Сохраняем текущую высоту в localStorage
+                    const currentHeight = parseInt(chatSection.style.height, 10);
+                    localStorage.setItem('chatSectionHeight', currentHeight);
+                }
+            });
+        }
         
         // Обработка изменения размера окна
         window.addEventListener('resize', function() {
             const savedHeight = localStorage.getItem('chatSectionHeight');
-            if (savedHeight) {
+            const chatSection = document.getElementById('chat-section');
+            if (savedHeight && chatSection) {
                 const maxHeight = window.innerHeight * 0.7;
                 const newHeight = Math.min(parseInt(savedHeight, 10), maxHeight);
                 chatSection.style.height = newHeight + 'px';
             }
         });
     </script>
-    </body>
+{% endblock %}
