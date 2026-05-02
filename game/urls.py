@@ -3,8 +3,27 @@ from django.contrib.auth.views import LogoutView
 from django.contrib.auth.views import LoginView
 from . import views
 from . import combat_api
+from . import api_views
 
 urlpatterns = [
+    # API v2 (DRF)
+    path('api/v2/auth/login/', api_views.LoginView.as_view(), name='api_login'),
+    path('api/v2/auth/register/', api_views.RegisterView.as_view(), name='api_register'),
+    path('api/v2/auth/logout/', api_views.LogoutView.as_view(), name='api_logout'),
+    path('api/v2/auth/me/', api_views.MeView.as_view(), name='api_me'),
+    path('api/v2/profile/distribute_stat/', api_views.DistributeStatView.as_view(), name='api_distribute_stat_v2'),
+    path('api/v2/inventory/', api_views.InventoryListView.as_view(), name='api_inventory_v2'),
+    path('api/v2/inventory/equip/', api_views.EquipItemView.as_view(), name='api_equip_v2'),
+    path('api/v2/inventory/unequip/', api_views.UnequipItemView.as_view(), name='api_unequip_v2'),
+    path('api/v2/inventory/use/', api_views.UseItemView.as_view(), name='api_use_v2'),
+    path('api/v2/shop/', api_views.ShopListView.as_view(), name='api_shop_v2'),
+    path('api/v2/shop/purchase/', api_views.ShopPurchaseView.as_view(), name='api_shop_purchase_v2'),
+    path('api/v2/tavern/', api_views.TavernListView.as_view(), name='api_tavern_v2'),
+    path('api/v2/tavern/purchase/', api_views.TavernPurchaseView.as_view(), name='api_tavern_purchase_v2'),
+    path('api/v2/combat/hunt/', api_views.StartHuntView.as_view(), name='api_hunt_v2'),
+    path('api/v2/combat/<uuid:combat_id>/state/', api_views.CombatStateView.as_view(), name='api_combat_state_v2'),
+    path('api/v2/combat/<uuid:combat_id>/turn/', api_views.CombatTurnView.as_view(), name='api_combat_turn_v2'),
+
     # Основные URL
     path('', views.home, name='home'),
     path('login/', views.login_view, name='login'),
