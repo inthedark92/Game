@@ -1,0 +1,10 @@
+Watching for file changes with StatReloader
+/app/game/api_views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+May 02, 2026 - 08:05:11
+Django version 6.0.4, using settings 'combats_clone.settings'
+Starting ASGI/Daphne version 4.2.1 development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
